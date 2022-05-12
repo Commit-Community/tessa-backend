@@ -23,7 +23,7 @@ metadata:
 
 spec:
   rules:
-  - host: tessa-backend-api.onboarding.dev
+  - host: tessa-backend-api.commit.community
     http:
       paths:
         - path: /(.*)
@@ -32,5 +32,5 @@ spec:
             servicePort: http
   tls:
   - hosts:
-    - tessa-backend-api.onboarding.dev
+    - tessa-backend-api.commit.community
     secretName: tessa-backend-tls-secret
