@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tessa-backend
+spec:
+  replicas: 1
+  revisionHistoryLimit: 5
+  selector:
+    matchLabels:
+      app: tessa-backend
+  template:
+    spec:
+      containers:
+        - name: tessa-backend
+          image: fake-image
+          resources:
+            requests:
+              memory: 128Mi
+              cpu: 0.1
+            limits:
+              memory: 256Mi
+              cpu: 0.5
+          ports:
+            - containerPort: 80
+              name: http
+          envFrom:
+          - configMapRef:
+              name: tessa-backend-config
+          # Uncomment the secretRef block below if your Playground application has secrets
+          # See the README for instructions on how to create secrets
+          #- secretRef:
+          #    name: tessa-backend-secrets
+          readinessProbe:
+            httpGet:
+              port: http
+              path: /
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 2
