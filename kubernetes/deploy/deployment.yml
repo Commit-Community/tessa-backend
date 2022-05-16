@@ -25,9 +25,9 @@ spec:
               name: http
           envFrom:
             - configMapRef:
-                name: tessa-backend-config
+                name: tessa-backend-app-config
             - secretRef:
-                name: tessa-backend-secrets
+                name: tessa-backend-app-secrets
           readinessProbe:
             httpGet:
               port: http
