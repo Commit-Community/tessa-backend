@@ -9,8 +9,15 @@ resources:
 configMapGenerator:
   - name: tessa-backend-config
     literals:
-      - MY_ENV_VAR_1=foo
-      - MY_ENV_VAR_2=bar
+      - GITHUB_CLIENT_ID=52f5f958056f86733495
+      - GITHUB_REDIRECT_URI=https://tessa-backend-api.commit.community/auth/github/oauth/callback
+      - HOSTNAME=0.0.0.0
+      - PORT=80
+      - POSTGRES_DB=tessa_production
+      - POSTGRES_USER=tessa_backend
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - WEBAPP_ORIGIN=https://tessa.commit.community
 
 commonLabels:
   app: tessa-backend
