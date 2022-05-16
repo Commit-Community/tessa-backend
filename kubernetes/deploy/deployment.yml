@@ -24,12 +24,10 @@ spec:
             - containerPort: 80
               name: http
           envFrom:
-          - configMapRef:
-              name: tessa-backend-config
-          # Uncomment the secretRef block below if your Playground application has secrets
-          # See the README for instructions on how to create secrets
-          #- secretRef:
-          #    name: tessa-backend-secrets
+            - configMapRef:
+                name: tessa-backend-app-config
+            - secretRef:
+                name: tessa-backend-app-secrets
           readinessProbe:
             httpGet:
               port: http

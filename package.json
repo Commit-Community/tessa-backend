@@ -1,11 +1,24 @@
 {
   "name": "tessa-backend",
-  "version": "1.0.0",
-  "description": "A simple http server: hello world",
-  "main": "app.js",
-  "scripts": {
-    "start": "node ."
+  "version": "0.0.0",
+  "description": "The backend API for TESSA.",
+  "license": "UNLICENSED",
+  "private": true,
+  "engines": {
+    "node": "18.1.0"
   },
-  "author": "",
-  "license": "ISC"
+  "main": "server.js",
+  "scripts": {
+    "start": "node --require dotenv/config ."
+  },
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "pg": "^8.7.3"
+  },
+  "devDependencies": {
+    "prettier": "^2.6.2"
+  },
+  "prettier": {
+    "arrowParens": "avoid"
+  }
 }

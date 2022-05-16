@@ -4,9 +4,9 @@ metadata:
   name: tessa-backend
 spec:
   ports:
-  - name: http
-    protocol: TCP
-    port: 80
-    targetPort: http
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
   selector:
     app: tessa-backend

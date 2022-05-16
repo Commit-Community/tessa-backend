@@ -11,26 +11,26 @@ metadata:
     cert-manager.io/cluster-issuer: clusterissuer-letsencrypt-production
     # CORS
     ######################################################################################################################
-    # This snippet automatically enables CORS for the referrer of any HTTP request. 
+    # This snippet automatically enables CORS for the referrer of any HTTP request.
     # It is here to simplify CORS headaches for Playground apps only and is *NOT* to be used in a real production setting.
     # Snippet based off https://qa.lsproc.com/post/access-control-allow-origin-multiple-origin-domains.
     ######################################################################################################################
     nginx.ingress.kubernetes.io/configuration-snippet: |
-        add_header 'Access-Control-Allow-Origin' "$http_origin";
-        add_header 'Access-Control-Allow-Credentials' 'true';
-        add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
-        add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
+      add_header 'Access-Control-Allow-Origin' "$http_origin";
+      add_header 'Access-Control-Allow-Credentials' 'true';
+      add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS';
+      add_header 'Access-Control-Allow-Headers' 'DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type';
 
 spec:
   rules:
-  - host: tessa-backend-api.commit.community
-    http:
-      paths:
-        - path: /(.*)
-          backend:
-            serviceName: tessa-backend
-            servicePort: http
+    - host: tessa-backend-api.commit.community
+      http:
+        paths:
+          - path: /(.*)
+            backend:
+              serviceName: tessa-backend
+              servicePort: http
   tls:
-  - hosts:
-    - tessa-backend-api.commit.community
-    secretName: tessa-backend-tls-secret
+    - hosts:
+        - tessa-backend-api.commit.community
+      secretName: tessa-backend-tls-secret

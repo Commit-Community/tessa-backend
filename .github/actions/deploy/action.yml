@@ -27,29 +27,29 @@ inputs:
 runs:
   using: "composite"
   steps:
-  - name: Migration
-    shell: bash
-    run: |
-      DEPLOYMENT=${{ inputs.app-name }}
-      NAMESPACE=${{ inputs.namespace }}
-      ECR_REPO=${{ inputs.ecr-repository-name }}
-      IMAGE_TAG=${{ inputs.image-tag }}
-      REGION=${{ inputs.region }}
-      IMAGE=${{ inputs.docker-host }}/${{ inputs.ecr-repository-name }}
+    - name: Migration
+      shell: bash
+      run: |
+        DEPLOYMENT=${{ inputs.app-name }}
+        NAMESPACE=${{ inputs.namespace }}
+        ECR_REPO=${{ inputs.ecr-repository-name }}
+        IMAGE_TAG=${{ inputs.image-tag }}
+        REGION=${{ inputs.region }}
+        IMAGE=${{ inputs.docker-host }}/${{ inputs.ecr-repository-name }}
 
-      cd kubernetes/deploy
-      kustomize edit set image fake-image=${IMAGE}:$IMAGE_TAG
-      kustomize build . | kubectl apply -f - -n $NAMESPACE
-      if ! kubectl -n $NAMESPACE rollout status deployment/$DEPLOYMENT -w --timeout=180s ; then
-        echo "$DEPLOYMENT rollout check failed:"
-        echo "$DEPLOYMENT deployment:"
-        kubectl -n $NAMESPACE describe deployment $DEPLOYMENT
-        echo "$DEPLOYMENT replicaset:"
-        kubectl -n $NAMESPACE describe rs -l app=$DEPLOYMENT
-        echo "$DEPLOYMENT pods:"
-        kubectl -n $NAMESPACE describe pod -l app=$DEPLOYMENT
-        exit 1
-      fi
-      # Update the last-deployed tag to be used in dev environments
-      MANIFEST=$(aws ecr batch-get-image --region $REGION --repository-name $ECR_REPO --image-ids imageTag=$IMAGE_TAG --query 'images[].imageManifest' --output text)
-      aws ecr put-image --region $REGION --repository-name $ECR_REPO --image-tag last-deployed --image-manifest "$MANIFEST"
+        cd kubernetes/deploy
+        kustomize edit set image fake-image=${IMAGE}:$IMAGE_TAG
+        kustomize build . | kubectl apply -f - -n $NAMESPACE
+        if ! kubectl -n $NAMESPACE rollout status deployment/$DEPLOYMENT -w --timeout=180s ; then
+          echo "$DEPLOYMENT rollout check failed:"
+          echo "$DEPLOYMENT deployment:"
+          kubectl -n $NAMESPACE describe deployment $DEPLOYMENT
+          echo "$DEPLOYMENT replicaset:"
+          kubectl -n $NAMESPACE describe rs -l app=$DEPLOYMENT
+          echo "$DEPLOYMENT pods:"
+          kubectl -n $NAMESPACE describe pod -l app=$DEPLOYMENT
+          exit 1
+        fi
+        # Update the last-deployed tag to be used in dev environments
+        MANIFEST=$(aws ecr batch-get-image --region $REGION --repository-name $ECR_REPO --image-ids imageTag=$IMAGE_TAG --query 'images[].imageManifest' --output text)
+        aws ecr put-image --region $REGION --repository-name $ECR_REPO --image-tag last-deployed --image-manifest "$MANIFEST"

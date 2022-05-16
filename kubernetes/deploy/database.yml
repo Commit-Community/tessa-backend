@@ -1,0 +1,77 @@
+kind: PersistentVolume
+apiVersion: v1
+metadata:
+  name: postgres-pv-volume
+  labels:
+    app: postgres
+spec:
+  storageClassName: gp2
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-pv-claim
+  labels:
+    app: postgres
+spec:
+  storageClassName: gp2
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:14.2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5432
+              name: db
+          envFrom:
+            - configMapRef:
+                name: tessa-backend-database-config
+            - secretRef:
+                name: tessa-backend-database-secrets
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgresqldata
+          resources:
+            limits:
+              cpu: 100m
+              memory: 512Mi
+      volumes:
+        - name: postgresqldata
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  labels:
+    app: postgres
+spec:
+  ports:
+    - port: 5432
+      targetPort: db
+  selector:
+    app: postgres
