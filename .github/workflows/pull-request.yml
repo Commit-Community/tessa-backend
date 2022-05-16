@@ -5,7 +5,7 @@
 name: Pull request
 on:
   pull_request:
-    branches: ['*']
+    branches: ["*"]
 jobs:
   unit-test:
     runs-on: ubuntu-latest
@@ -13,17 +13,17 @@ jobs:
       CI: true
       build_env: production
     steps:
-    - uses: actions/checkout@v2
-    - name: Run unit tests
-      run: |
-        echo "FIXME: Add unit tests"
+      - uses: actions/checkout@v2
+      - name: Run unit tests
+        run: |
+          echo "FIXME: Add unit tests"
   check-formatting:
     runs-on: ubuntu-latest
     env:
       CI: true
       build_env: production
     steps:
-    - uses: actions/checkout@v2
-    - name: Run Prettier
-      run: |
-        npx prettier --check .
+      - uses: actions/checkout@v2
+      - name: Run Prettier
+        run: |
+          npx prettier --check .

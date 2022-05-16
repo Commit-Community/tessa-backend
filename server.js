@@ -1,4 +1,4 @@
-const main = require('./src/main');
+const main = require("./src/main");
 
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
