@@ -1,16 +1,3 @@
-kind: PersistentVolume
-apiVersion: v1
-metadata:
-  name: tessa-backend-postgres-pv-volume
-  labels:
-    app: postgres
-spec:
-  storageClassName: gp2
-  capacity:
-    storage: 5Gi
-  accessModes:
-    - ReadWriteOnce
----
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
