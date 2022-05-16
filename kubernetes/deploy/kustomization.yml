@@ -21,6 +21,7 @@ configMapGenerator:
       - WEBAPP_ORIGIN=https://tessa.commit.community
   - name: tessa-backend-database-config
     literals:
+      - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_DB=tessa_production
       - POSTGRES_USER=tessa_backend
 
