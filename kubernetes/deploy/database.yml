@@ -1,7 +1,7 @@
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: postgres-pv-volume
+  name: tessa-backend-postgres-pv-volume
   labels:
     app: postgres
 spec:
