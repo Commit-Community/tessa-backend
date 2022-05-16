@@ -245,5 +245,8 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/go,macos,linux,windows,node
 
-# Kubernetes secrets
+# CircleCI
+.circleci/config-compiled.yml
+
+# application environment config
 secrets/*secrets.yml
