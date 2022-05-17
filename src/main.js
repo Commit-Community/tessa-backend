@@ -11,12 +11,13 @@ const rootRouter = require("./rootRouter");
 
 const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
 
-const main = async (config) => {
-  console.log("Using config");
-  for (let [key, value] of Object.entries(config)) {
-    console.log(`  ${key}: ${value}`);
-  }
-  const { corsOrigin, hostname, port, schemaPath, sessionSecret } = config;
+const main = async ({
+  corsOrigin,
+  hostname,
+  port,
+  schemaPath,
+  sessionSecret,
+}) => {
   let schemaSQL;
   console.log("Reading schema file...");
   try {
