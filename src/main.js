@@ -3,7 +3,6 @@ const cors = require("cors");
 const express = require("express");
 const expressSession = require("express-session");
 const fs = require("fs");
-const path = require("path");
 
 const authRouter = require("./authRouter");
 const db = require("./db");
@@ -12,13 +11,28 @@ const rootRouter = require("./rootRouter");
 
 const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
 
-const migrateSchema = async () => {
-  const schemaPath = path.resolve(__dirname, "schema.sql");
-  const schemaSQL = await fs.promises.readFile(schemaPath, "utf8");
-  return db.query(schemaSQL);
-};
-
-const configureApp = (corsOrigin, sessionSecret) => {
+const main = async (config) => {
+  console.log("Using config");
+  for (let [key, value] of Object.entries(config)) {
+    console.log(`  ${key}: ${value}`);
+  }
+  const { corsOrigin, hostname, port, schemaPath, sessionSecret } = config;
+  let schemaSQL;
+  console.log("Reading schema file...");
+  try {
+    schemaSQL = await fs.promises.readFile(schemaPath, "utf8");
+  } catch (e) {
+    console.log(`Failed to read schema file. ${e}`);
+    return;
+  }
+  console.log("Running schema migration...");
+  try {
+    await db.query(schemaSQL);
+  } catch (e) {
+    console.log(`Failed to run schema migration. ${e}`);
+    return;
+  }
+  console.log("Configuring app...");
   const app = express();
   app.use(express.json());
   app.use(cors({ credentials: true, origin: corsOrigin }));
@@ -36,13 +50,8 @@ const configureApp = (corsOrigin, sessionSecret) => {
   app.use("/auth", authRouter);
   app.use(handleNotFound);
   app.use(handleErrors);
-  return app;
-};
-
-const main = async (hostname, port, corsOrigin, sessionSecret) => {
-  await migrateSchema();
-  const app = configureApp(corsOrigin, sessionSecret);
   return new Promise((resolve) => {
+    console.log("Starting server...");
     const server = app.listen(port, hostname, () => {
       console.log(`Server running at http://${hostname}:${port}/`);
       resolve(server);

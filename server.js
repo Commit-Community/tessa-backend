@@ -1,8 +1,10 @@
 const main = require("./src/main");
+const path = require("path");
 
-main(
-  process.env.HOSTNAME,
-  process.env.PORT,
-  process.env.WEBAPP_ORIGIN,
-  process.env.SESSION_SECRET
-);
+main({
+  corsOrigin: process.env.WEBAPP_ORIGIN,
+  hostname: process.env.HOSTNAME,
+  port: process.env.PORT,
+  schemaPath: path.resolve(__dirname, "src/schema.sql"),
+  sessionSecret: process.env.SESSION_SECRET,
+});

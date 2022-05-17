@@ -5,7 +5,7 @@
   "license": "UNLICENSED",
   "private": true,
   "engines": {
-    "node": "18.1.0"
+    "node": "16"
   },
   "main": "server.js",
   "scripts": {

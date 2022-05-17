@@ -1,6 +1,5 @@
 require("connect-pg-simple");
 const path = require("path");
-const fs = require("fs");
 
 const main = require("../main");
 const { mockQuery } = require("../db");
@@ -14,23 +13,66 @@ jest.mock(
 );
 jest.mock("../db");
 
-describe("server", () => {
-  it("should run the database schema migrations, log a message and start listening", async () => {
-    const originalConsoleLog = console.log;
+describe("main", () => {
+  const originalConsoleLog = console.log;
+
+  beforeEach(() => {
     console.log = jest.fn();
-    const schemaPath = path.resolve(__dirname, "../schema.sql");
-    const schemaSQL = await fs.promises.readFile(schemaPath, "utf8");
-    mockQuery(schemaSQL, [], []);
-    const server = await main(
-      "0.0.0.0",
-      "12345",
-      "http://cors-origin",
-      "test secret"
+  });
+
+  afterEach(() => {
+    console.log = originalConsoleLog;
+  });
+
+  it("should run the database schema migrations, log a message and start listening", async () => {
+    mockQuery(
+      "CREATE TABLE IF NOT EXISTS test (\n  id BIGSERIAL PRIMARY KEY\n);\n",
+      [],
+      []
     );
+    const server = await main({
+      corsOrigin: "http://cors-origin",
+      hostname: "0.0.0.0",
+      port: "12345",
+      schemaPath: path.resolve(__dirname, "../__fixtures__/schema.sql"),
+      sessionSecret: "test secret",
+    });
     expect(console.log).toHaveBeenCalledWith(
       `Server running at http://0.0.0.0:12345/`
     );
     server.close();
-    console.log = originalConsoleLog;
+  });
+
+  it("should not start if the schema file can't be read", async () => {
+    const server = await main({
+      corsOrigin: "http://cors-origin",
+      hostname: "0.0.0.0",
+      port: "12345",
+      schemaPath: "bad-file-path.sql",
+      sessionSecret: "test secret",
+    });
+    expect(server).toBeUndefined();
+    if (typeof server !== "undefined") {
+      server.close();
+    }
+  });
+
+  it("should not start if the schema migration fails", async () => {
+    mockQuery(
+      "CREATE TABLE IF NOT EXISTS test (\n  id BIGSERIAL PRIMARY KEY\n);\n",
+      [],
+      new Error("test error")
+    );
+    const server = await main({
+      corsOrigin: "http://cors-origin",
+      hostname: "0.0.0.0",
+      port: "12345",
+      schemaPath: path.resolve(__dirname, "../__fixtures__/schema.sql"),
+      sessionSecret: "test secret",
+    });
+    expect(server).toBeUndefined();
+    if (typeof server !== "undefined") {
+      server.close();
+    }
   });
 });
