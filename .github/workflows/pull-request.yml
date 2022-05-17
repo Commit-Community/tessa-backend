@@ -1,7 +1,5 @@
 # Pull request
-# These are sanity checks that run on every commit in a PR
-# By default your repository setup will require a pre-configured list [`unit-test`] of status for merging,
-# You can modify this behavior in the GitHub's Branch protection settings
+# These are consistency checks that run on every commit in a PR
 name: Pull request
 on:
   pull_request:
@@ -11,19 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
-      build_env: production
     steps:
       - uses: actions/checkout@v2
       - name: Run unit tests
         run: |
+          npm install
           npm test
+
   check-formatting:
     runs-on: ubuntu-latest
     env:
       CI: true
-      build_env: production
     steps:
       - uses: actions/checkout@v2
       - name: Run Prettier
         run: |
+          npm install prettier
           npx prettier --check .

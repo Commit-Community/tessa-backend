@@ -1,10 +1,10 @@
 # CI pipeline
 # This runs against all the commits landed on master
 # It will do the following things:
-# - run sanity tests against the checked-out code
+# - run consistency tests against the checked-out code
 # - build an image and upload the docker image to ECR
 # - deploy to staging environment
-# - run smoke test against staging enviroment
+# - run smoke test against staging environment
 # - deploy to production
 name: CI Pipeline
 on:
@@ -22,10 +22,13 @@ env:
 jobs:
   unit-test:
     runs-on: ubuntu-latest
+    env:
+      CI: true
     steps:
       - uses: actions/checkout@v2
       - name: Run Unit Tests
         run: |
+          npm install
           npm test
 
   build:
