@@ -6,8 +6,13 @@ const fs = require("fs");
 
 const authRouter = require("./authRouter");
 const db = require("./db");
+const facetsRouter = require("./facetsRouter");
 const { handleNotFound, handleErrors } = require("./errorHandlers");
+const { isAuthenticated } = require("./authMiddleware");
+const reflectionsRouter = require("./reflectionsRouter");
 const rootRouter = require("./rootRouter");
+const statementsRouter = require("./statementsRouter");
+const skillsRouter = require("./skillsRouter");
 
 const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
 
@@ -49,6 +54,10 @@ const main = async ({
   );
   app.use("/", rootRouter);
   app.use("/auth", authRouter);
+  app.use("/facets", facetsRouter);
+  app.use("/reflections", isAuthenticated, reflectionsRouter);
+  app.use("/statements", statementsRouter);
+  app.use("/skills", skillsRouter);
   app.use(handleNotFound);
   app.use(handleErrors);
   return new Promise((resolve) => {
