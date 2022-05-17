@@ -25,11 +25,13 @@ jobs:
     env:
       CI: true
     steps:
-      - uses: actions/checkout@v2
-      - name: Run Unit Tests
-        run: |
-          npm install
-          npm test
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm test
 
   build:
     needs: unit-test
