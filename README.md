@@ -1,72 +1,96 @@
-# tessa-backend Backend service
+# TESSA Backend
 
-# Getting Started
+## Getting Started
 
-### Essential steps to get your backend service deployed
+### 1. Configure a GitHub OAuth app
 
-A helloworld example has been shipped with the template to show the bare minimum setup - a server that listens on the configured port, a dockerfile, and some kubernetes manifests.
+Users log into TESSA with GitHub. Every developer should create their own OAuth
+app in GitHub to develop against. To do that, follow these steps.
 
-- Webserver that listens on port 80
-- Dockerfile builds and serves on port 80
+1. Go to https://github.com/settings/developers.
+2. Click the "New OAuth App" button.
+3. Enter the following data, then click the "Register application" button.
+   - Application name: TESSA Development
+   - Homepage URL: `http://localhost:3000/`
+   - Application description: TESSA local development.
+   - Authorization callback URL:
+     `http://localhost:8484/auth/github/oauth/callback`
+4. In your local clone of this repo, create a copy of the file `.env.example`
+   and name it `.env`.
+5. On the `Settings / Developer settings / TESSA Development` page, copy the
+   "Client ID" and paste the value after `GITHUB_CLIENT_ID=` in the `.env` file.
+6. Then, click the "Generate a new client secret" button, copy the secret, and
+   paste it after `GITHUB_CLIENT_SECRET=` in the `.env` file.
 
-# Deployment
+### 2. Start the Postgres database
 
-### Things that happened behind the scenes
+TESSA uses a Postgres database. For convenience, a `docker-compose.yml` file has
+been created to run a development database with the preconfigured environment.
+To start the database, simply run:
 
-- The Github Org has already been configured with secrets that allow this project to deploy to the Onboarding cluster
-- CI/CD will run in Github actions to deploy your application
-- It will build an image and push to ECR (Elastic Container Registry)
-- it will create an ingress, service, and deployment in the Kubernetes cluster using kustomize during the CI pipeline
-- It will update the deployment to use the newly built docker image
+```
+docker-compose up
+```
 
-# Your local environment
+### 3. Install dependencies and run the server
 
-To set up your local environment with access to AWS and Kubernetes, just run:
+TESSA Backend is a Node.js app. To improve compatibility, it should only be run
+against the version of Node.js specified in the `.nvmrc` file. If you have
+[NVM](https://github.com/nvm-sh/nvm) installed, to use the correct version of
+Node, run:
+
+```
+nvm use
+```
+
+With the right version of node installed, the next step is to install the
+dependencies. To do that, run:
+
+```
+npm install
+```
+
+Finally, run the server with:
+
+```
+npm start
+```
+
+## Production environment
+
+To set up your local environment with access to AWS and Kubernetes, run:
 
 ```
 ./scripts/setup-env.sh
 ```
 
-This script will open a web browser and prompt you to log in with your Commit Gmail account, and then will configure an AWS profile and a Kubernetes context.
+This script will open a web browser and prompt you to log in with your Commit
+account, and then will configure an AWS profile and a Kubernetes context.
 
-# Creating secrets
+## Structure
 
-The Playground uses a somewhat "quick and dirty" way to create secrets for your application without needing to commit them to your GitHub repository. In order to add secrets to your deployment:
+### Kubernetes
 
-1. Rename `secrets/secrets.yml.example` to `secrets.yml` (note that `secrets.yml` has been added to the `.gitignore` file, so they will not be committed to your GitHub repository).
-2. Add secrets to the `stringData` section of your `secrets.yml` file as appropriate. In your deployed application, each secret key will be available as an environment variable.
-3. Run `make upsert-secrets` from the root of your application which will create the secrets object on your Kubernetes cluster server.
-4. Uncomment the `secretRef` and `name` lines from `kubernetes/deploy/deployment.yml`.
-5. That's it! Deploy your application in order for the secrets to be picked up, and you should now be able to access them as environment variables via the defined secret keys.
-
-# Structure
-
-## Kubernetes
-
-The configuration of your application in Kubernetes uses [https://kustomize.io/](kustomize) and is run by the CI pipeline, the configuration is in the [`/kubernetes`](./kubernetes/deploy/) directory.
-Once the CI pipeline is finished, you can see the pod status on kubernetes in your application namespace:
+The configuration of the application in Kubernetes uses
+[https://kustomize.io/](kustomize) and is run by the CI pipeline. The
+configuration is in the [`/kubernetes`](./kubernetes/deploy/) directory.
+Once the CI pipeline is finished, you can see the pod status on kubernetes in
+the `tessa-backend` namespace:
 
 ```
 kubectl -n tessa-backend get pods
 ```
 
-### Configuring
+### GitHub Actions
 
-You can update the configuration of the [deployment] and adjust things like increasing the number of replicas and adding new environment variables in the [kustomization] file. The [ingress] and [service] control routing traffic to your application.
-
-## Github actions
-
-Your repository comes with a end-to-end CI/CD pipeline, which includes the following steps:
+This repository has an end-to-end CI/CD pipeline that runs whenever new commits
+are pushed to the `main` branch. It includes the following steps.
 
 1. Checkout
-2. Unit Tests
-3. Build Image
+2. Unit test
+3. Build image
 4. Upload Image to ECR
 5. Deploy image to cluster
 
-<!-- Links -->
-
-[deployment]: ./kubernetes/deploy/deployment.yml
-[service]: ./kubernetes/deploy/service.yml
-[ingress]: ./kubernetes/deploy/ingress.yml
-[kustomization]: ./kubernetes/deploy/kustomization.yml
+Pull requests also run a workflow which runs unit tests, and checks the code for
+lint before permitting PRs to be merged.
