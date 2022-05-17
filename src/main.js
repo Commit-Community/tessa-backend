@@ -1,29 +1,61 @@
+const connectPgSimple = require("connect-pg-simple");
+const cors = require("cors");
+const express = require("express");
+const expressSession = require("express-session");
 const fs = require("fs");
-const http = require("http");
-const path = require("path");
-const pg = require("pg");
 
-const main = async (hostname, port, pgConfig) => {
-  const db = new pg.Pool(pgConfig);
+const authRouter = require("./authRouter");
+const db = require("./db");
+const { handleNotFound, handleErrors } = require("./errorHandlers");
+const rootRouter = require("./rootRouter");
+
+const thirtyDaysInMilliseconds = 30 * 24 * 60 * 60 * 1000;
+
+const main = async (config) => {
+  console.log("Using config");
+  for (let [key, value] of Object.entries(config)) {
+    console.log(`  ${key}: ${value}`);
+  }
+  const { corsOrigin, hostname, port, schemaPath, sessionSecret } = config;
+  let schemaSQL;
+  console.log("Reading schema file...");
   try {
-    const schemaPath = path.resolve(__dirname, "schema.sql");
-    const schemaSQL = await fs.promises.readFile(schemaPath, "utf8");
+    schemaSQL = await fs.promises.readFile(schemaPath, "utf8");
+  } catch (e) {
+    console.log(`Failed to read schema file. ${e}`);
+    return;
+  }
+  console.log("Running schema migration...");
+  try {
     await db.query(schemaSQL);
   } catch (e) {
-    console.log(`Failed to run database schema update. ${e}`);
+    console.log(`Failed to run schema migration. ${e}`);
+    return;
   }
-  const server = http.createServer(async (req, res) => {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "application/json");
-    try {
-      await db.query("SELECT 1;");
-      res.end('{"status":"connected"}');
-    } catch (e) {
-      res.end('{"status":"not connected"}');
-    }
-  });
-  server.listen(port, hostname, () => {
-    console.log(`Server running at http://${hostname}:${port}/`);
+  console.log("Configuring app...");
+  const app = express();
+  app.use(express.json());
+  app.use(cors({ credentials: true, origin: corsOrigin }));
+  app.use(
+    expressSession({
+      cookie: { maxAge: thirtyDaysInMilliseconds, sameSite: true },
+      name: "session_id",
+      resave: true,
+      saveUninitialized: true,
+      secret: sessionSecret,
+      store: new (connectPgSimple(expressSession))({ pool: db }),
+    })
+  );
+  app.use("/", rootRouter);
+  app.use("/auth", authRouter);
+  app.use(handleNotFound);
+  app.use(handleErrors);
+  return new Promise((resolve) => {
+    console.log("Starting server...");
+    const server = app.listen(port, hostname, () => {
+      console.log(`Server running at http://${hostname}:${port}/`);
+      resolve(server);
+    });
   });
 };
 

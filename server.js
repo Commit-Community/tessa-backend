@@ -1,13 +1,10 @@
 const main = require("./src/main");
+const path = require("path");
 
-const hostname = process.env.HOSTNAME;
-const port = process.env.PORT;
-const pgConfig = {
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
-  database: process.env.POSTGRES_DB,
-  host: process.env.POSTGRES_HOST,
-  port: process.env.POSTGRES_PORT,
-};
-
-main(hostname, port, pgConfig);
+main({
+  corsOrigin: process.env.WEBAPP_ORIGIN,
+  hostname: process.env.HOSTNAME,
+  port: process.env.PORT,
+  schemaPath: path.resolve(__dirname, "src/schema.sql"),
+  sessionSecret: process.env.SESSION_SECRET,
+});
