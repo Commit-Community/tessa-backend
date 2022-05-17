@@ -42,7 +42,7 @@ const configureApp = (corsOrigin, sessionSecret) => {
 const main = async (hostname, port, corsOrigin, sessionSecret) => {
   await migrateSchema();
   const app = configureApp(corsOrigin, sessionSecret);
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const server = app.listen(port, hostname, () => {
       console.log(`Server running at http://${hostname}:${port}/`);
       resolve(server);

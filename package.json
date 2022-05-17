@@ -41,7 +41,5 @@
     },
     "resetMocks": true
   },
-  "prettier": {
-    "arrowParens": "avoid"
-  }
+  "prettier": {}
 }

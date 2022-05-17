@@ -1,6 +1,6 @@
-exports.errorEnvelope = error => ({ error: { message: String(error) } });
+exports.errorEnvelope = (error) => ({ error: { message: String(error) } });
 
-exports.itemEnvelope = data => ({ data });
+exports.itemEnvelope = (data) => ({ data });
 
 exports.collectionEnvelope = (data, totalCount) => ({
   data,
