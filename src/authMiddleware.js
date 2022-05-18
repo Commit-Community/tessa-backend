@@ -1,4 +1,4 @@
-const { isRepoCollaborator } = require("./githubService");
+const { isOrgMember } = require("./githubService");
 const { UnauthorizedError } = require("./httpErrors");
 
 exports.isAuthenticated = (req, res, next) => {
@@ -9,13 +9,13 @@ exports.isAuthenticated = (req, res, next) => {
   next(new UnauthorizedError());
 };
 
-exports.isCollaborator = async (req, res, next) => {
-  const hasCollaboratorAccess = await isRepoCollaborator(
-    process.env.GITHUB_ACCESS_TOKEN,
+exports.isMember = (githubOrganizationName) => async (req, res, next) => {
+  const isUserPublicMemberOfOrg = await isOrgMember(
+    req.session.accessToken,
     req.session.githubUsername,
-    "davidvandusen/tessa"
+    githubOrganizationName
   );
-  if (hasCollaboratorAccess) {
+  if (isUserPublicMemberOfOrg) {
     next();
     return;
   }

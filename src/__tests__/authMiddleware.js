@@ -1,5 +1,5 @@
-const { isAuthenticated, isCollaborator } = require("../authMiddleware");
-const { isRepoCollaborator } = require("../githubService");
+const { isAuthenticated, isMember } = require("../authMiddleware");
+const { isOrgMember } = require("../githubService");
 const { UnauthorizedError } = require("../httpErrors");
 
 jest.mock("../githubService");
@@ -23,29 +23,37 @@ describe("authMiddleware", () => {
     });
   });
 
-  describe("isCollaborator", () => {
-    it("should call next if the logged in user is a collaborator on the project repository", async () => {
+  describe("isMember", () => {
+    it("should call next if the logged in user is a member of the organization", async () => {
       const next = jest.fn();
-      isRepoCollaborator.mockResolvedValue(true);
-      process.env.GITHUB_ACCESS_TOKEN = "TEST_GITHUB_ACCESS_TOKEN";
-      await isCollaborator(
-        { session: { userId: 1, githubUsername: "test" } },
+      isOrgMember.mockResolvedValue(true);
+      const githubOrganizationName = "test-organization";
+      const accessToken = "test_access_token";
+      const githubUsername = "test-github-username";
+      await isMember(githubOrganizationName)(
+        { session: { accessToken, githubUsername, userId: 1 } },
         {},
         next
       );
-      expect(isRepoCollaborator).toHaveBeenCalledWith(
-        "TEST_GITHUB_ACCESS_TOKEN",
-        "test",
-        "davidvandusen/tessa"
+      expect(isOrgMember).toHaveBeenCalledWith(
+        accessToken,
+        githubUsername,
+        githubOrganizationName
       );
       expect(next).toHaveBeenCalledWith();
     });
 
-    it("should call next with an UnauthorizedError if the logged in user is not a collaborator on the project repository", async () => {
+    it("should call next with an UnauthorizedError if the logged in user is not a member of the organization", async () => {
       const next = jest.fn();
-      isRepoCollaborator.mockResolvedValue(false);
-      await isCollaborator(
-        { session: { userId: 1, githubUsername: "test" } },
+      isOrgMember.mockResolvedValue(false);
+      await isMember("test-organization")(
+        {
+          session: {
+            accessToken: "test_access_token",
+            userId: 1,
+            githubUsername: "test",
+          },
+        },
         {},
         next
       );

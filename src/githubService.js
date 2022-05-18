@@ -22,10 +22,13 @@ exports.getGithubUser = async (accessToken) => {
   return response.body;
 };
 
-exports.isRepoCollaborator = async (accessToken, githubUsername, repo) => {
+exports.isOrgMember = async (accessToken, githubUsername, organizationName) => {
   const response = await request
-    .get(`https://api.github.com/repos/${repo}/collaborators/${githubUsername}`)
+    .get(
+      `https://api.github.com/orgs/${organizationName}/members/${githubUsername}`
+    )
     .set("User-Agent", "TESSA API")
-    .set("Authorization", `token ${accessToken}`);
+    .set("Authorization", `token ${accessToken}`)
+    .ok(({ status }) => status);
   return response.status === 204;
 };

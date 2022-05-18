@@ -2,7 +2,7 @@ const request = require("../request");
 const {
   getAccessToken,
   getGithubUser,
-  isRepoCollaborator,
+  isOrgMember,
 } = require("../githubService");
 
 jest.mock("../request");
@@ -53,21 +53,26 @@ describe("githubService", () => {
     });
   });
 
-  describe("isRepoCollaborator", () => {
-    it("should return whether the user has access to the repo", async () => {
+  describe("isOrgMember", () => {
+    it("should return whether the user is a member of the organization", async () => {
       const accessToken = "test_access_token";
       const mockSet = jest.fn();
+      const mockOk = jest.fn((callback) => {
+        const response = { status: 204 };
+        expect(callback(response)).toBeTruthy();
+        return response;
+      });
       const mockRequest = { set: mockSet };
       mockRequestGet.mockReturnValue(mockRequest);
       mockSet.mockReturnValueOnce(mockRequest);
-      mockSet.mockReturnValueOnce({ status: 204 });
-      const repo = "test-owner/test-repo";
-      const testGithubUsername = "test-github-username";
+      mockSet.mockReturnValueOnce({ ok: mockOk });
+      const organizationName = "test-organization";
+      const githubUsername = "test-github-username";
       expect(
-        await isRepoCollaborator(accessToken, testGithubUsername, repo)
+        await isOrgMember(accessToken, githubUsername, organizationName)
       ).toEqual(true);
       expect(mockRequestGet).toHaveBeenCalledWith(
-        `https://api.github.com/repos/${repo}/collaborators/${testGithubUsername}`
+        `https://api.github.com/orgs/${organizationName}/members/${githubUsername}`
       );
       expect(mockSet).toHaveBeenCalledWith("User-Agent", "TESSA API");
       expect(mockSet).toHaveBeenCalledWith(

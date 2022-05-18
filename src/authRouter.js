@@ -28,6 +28,7 @@ authRouter.get("/github/oauth/callback", async (req, res, next) => {
   }
   req.session.userId = user.id;
   req.session.githubUsername = user.github_username;
+  req.session.accessToken = accessToken;
   res.redirect(process.env.WEBAPP_ORIGIN);
 });
 
