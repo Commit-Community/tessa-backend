@@ -26,7 +26,7 @@ authRouter.get("/github/oauth/callback", async (req, res, next) => {
   if (!user) {
     user = await createUser(githubUser.id, githubUser.login);
   }
-  req.session.userId = user.id;
+  req.session.userId = String(user.id);
   req.session.githubUsername = user.github_username;
   req.session.accessToken = accessToken;
   res.redirect(process.env.WEBAPP_ORIGIN);
