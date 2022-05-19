@@ -20,13 +20,36 @@ authRouter.get("/github/oauth/callback", async (req, res, next) => {
     next(new BadRequestError('A "code" query string parameter is required.'));
     return;
   }
-  const accessToken = await getAccessToken(code);
-  const githubUser = await getGithubUser(accessToken);
-  let user = await findUserByGithubId(githubUser.id);
-  if (!user) {
-    user = await createUser(githubUser.id, githubUser.login);
+  let accessToken;
+  try {
+    accessToken = await getAccessToken(code);
+  } catch (e) {
+    next(e);
+    return;
   }
-  req.session.userId = user.id;
+  let githubUser;
+  try {
+    githubUser = await getGithubUser(accessToken);
+  } catch (e) {
+    next(e);
+    return;
+  }
+  let user;
+  try {
+    user = await findUserByGithubId(githubUser.id);
+  } catch (e) {
+    next(e);
+    return;
+  }
+  if (!user) {
+    try {
+      user = await createUser(githubUser.id, githubUser.login);
+    } catch (e) {
+      next(e);
+      return;
+    }
+  }
+  req.session.userId = String(user.id);
   req.session.githubUsername = user.github_username;
   req.session.accessToken = accessToken;
   res.redirect(process.env.WEBAPP_ORIGIN);

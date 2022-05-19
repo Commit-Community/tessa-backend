@@ -23,6 +23,11 @@ describe("skillsRouter", () => {
         done(err);
       });
     });
+
+    it("should respond with an internal server error if there is an error querying for the skills", (done) => {
+      listSkills.mockRejectedValueOnce(new Error());
+      appAgent.get("/").expect(500, done);
+    });
   });
 
   describe("GET /:id", () => {
@@ -56,6 +61,11 @@ describe("skillsRouter", () => {
         expect(findSkill).not.toHaveBeenCalled();
         done(err);
       });
+    });
+
+    it("should respond with an internal server error if there is an error querying for the skill", (done) => {
+      findSkill.mockRejectedValueOnce(new Error());
+      appAgent.get("/1").expect(500, done);
     });
   });
 });

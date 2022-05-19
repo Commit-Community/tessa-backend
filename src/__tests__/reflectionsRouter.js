@@ -30,6 +30,11 @@ describe("reflectionsRouter", () => {
           done(err);
         });
     });
+
+    it("should respond with an internal server error if there is an error querying for the reflections", (done) => {
+      listReflections.mockRejectedValueOnce(new Error());
+      appAgent.get("/").expect(500, done);
+    });
   });
 
   describe("POST /", () => {
@@ -58,30 +63,39 @@ describe("reflectionsRouter", () => {
         });
     });
 
-    it("should respond with a bad request error if statement_id is not sent", (done) => {
+    it("should respond with an unprocessable entity error if statement_id is not sent", (done) => {
       mockUserId(1);
-      appAgent.post("/").send({ skill_id: 2 }).expect(400, done);
+      appAgent.post("/").send({ skill_id: 2 }).expect(422, done);
     });
 
-    it("should respond with a bad request error if skill_id is not sent", (done) => {
+    it("should respond with an unprocessable entity error if skill_id is not sent", (done) => {
       mockUserId(1);
-      appAgent.post("/").send({ statement_id: 2 }).expect(400, done);
+      appAgent.post("/").send({ statement_id: 2 }).expect(422, done);
     });
 
-    it("should respond with a bad request error if statement_id is not a valid id", (done) => {
+    it("should respond with an unprocessable entity error if statement_id is not a valid id", (done) => {
       mockUserId(1);
       appAgent
         .post("/")
         .send({ statement_id: 0, skill_id: 2 })
-        .expect(400, done);
+        .expect(422, done);
     });
 
-    it("should respond with a bad request error if skill_id is not a valid id", (done) => {
+    it("should respond with an unprocessable entity error if skill_id is not a valid id", (done) => {
       mockUserId(1);
       appAgent
         .post("/")
         .send({ statement_id: 2, skill_id: 0 })
-        .expect(400, done);
+        .expect(422, done);
+    });
+
+    it("should respond with an internal server error if there is an error creating the reflection", (done) => {
+      mockUserId(1);
+      createReflection.mockRejectedValueOnce(new Error());
+      appAgent
+        .post("/")
+        .send({ statement_id: 2, skill_id: 3 })
+        .expect(500, done);
     });
   });
 });

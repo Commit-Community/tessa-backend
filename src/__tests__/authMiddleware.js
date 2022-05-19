@@ -1,4 +1,4 @@
-const { isAuthenticated, isMember } = require("../authMiddleware");
+const { isAuthenticated, isMember, isAdmin } = require("../authMiddleware");
 const { isOrgMember } = require("../githubService");
 const { UnauthorizedError } = require("../httpErrors");
 
@@ -9,7 +9,7 @@ describe("authMiddleware", () => {
     it("should call next if the request session has user data", () => {
       const next = jest.fn();
       isAuthenticated(
-        { session: { userId: 1, githubUsername: "test" } },
+        { session: { userId: "1", githubUsername: "test" } },
         {},
         next
       );
@@ -31,7 +31,7 @@ describe("authMiddleware", () => {
       const accessToken = "test_access_token";
       const githubUsername = "test-github-username";
       await isMember(githubOrganizationName)(
-        { session: { accessToken, githubUsername, userId: 1 } },
+        { session: { accessToken, githubUsername, userId: "1" } },
         {},
         next
       );
@@ -41,6 +41,12 @@ describe("authMiddleware", () => {
         githubOrganizationName
       );
       expect(next).toHaveBeenCalledWith();
+    });
+
+    it("should call next with an UnauthorizedError if no user is logged in", async () => {
+      const next = jest.fn();
+      await isMember("test-organization")({ session: {} }, {}, next);
+      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
     });
 
     it("should call next with an UnauthorizedError if the logged in user is not a member of the organization", async () => {
@@ -57,6 +63,26 @@ describe("authMiddleware", () => {
         {},
         next
       );
+      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+    });
+  });
+
+  describe("isAdmin", () => {
+    it("should call next if the logged in user has user ID 1", () => {
+      const next = jest.fn();
+      isAdmin({ session: { userId: "1", githubUsername: "test" } }, {}, next);
+      expect(next).toHaveBeenCalledWith();
+    });
+
+    it("should call next with an UnauthorizedError if no user is logged in", () => {
+      const next = jest.fn();
+      isAdmin({ session: {} }, {}, next);
+      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+    });
+
+    it("should call next with an UnauthorizedError if the logged in user does not have user ID 1", () => {
+      const next = jest.fn();
+      isAdmin({ session: { userId: "2", githubUsername: "test" } }, {}, next);
       expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
     });
   });
