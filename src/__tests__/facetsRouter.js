@@ -26,6 +26,11 @@ describe("facetsRouter", () => {
         done(err);
       });
     });
+
+    it("should respond with an internal server error if there is an error querying for the facets", (done) => {
+      listFacets.mockRejectedValueOnce(new Error());
+      appAgent.get("/").expect(500, done);
+    });
   });
 
   describe("POST /", () => {

@@ -7,9 +7,15 @@ const { UnprocessableEntityError } = require("./httpErrors");
 
 const reflectionsRouter = new Router();
 
-reflectionsRouter.get("/", async (req, res) => {
+reflectionsRouter.get("/", async (req, res, next) => {
   const { userId } = req.session;
-  const reflections = await listReflections(userId);
+  let reflections;
+  try {
+    reflections = await listReflections(userId);
+  } catch (e) {
+    next(e);
+    return;
+  }
   res.json(collectionEnvelope(reflections, reflections.length));
 });
 
@@ -41,7 +47,13 @@ reflectionsRouter.post("/", async (req, res, next) => {
     );
     return;
   }
-  const reflection = await createReflection(userId, skillId, statementId);
+  let reflection;
+  try {
+    reflection = await createReflection(userId, skillId, statementId);
+  } catch (e) {
+    next(e);
+    return;
+  }
   res.status(201).json(itemEnvelope(reflection));
 });
 
