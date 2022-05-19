@@ -7,8 +7,14 @@ const { isValidId } = require("./validators");
 
 const skillsRouter = new Router();
 
-skillsRouter.get("/", async (req, res) => {
-  const skills = await listSkills();
+skillsRouter.get("/", async (req, res, next) => {
+  let skills;
+  try {
+    skills = await listSkills();
+  } catch (e) {
+    next(e);
+    return;
+  }
   res.json(collectionEnvelope(skills, skills.length));
 });
 
@@ -19,7 +25,13 @@ skillsRouter.get("/:id", async (req, res, next) => {
     next(new BadRequestError(`"${id}" is not a valid skill id.`));
     return;
   }
-  const skill = await findSkill(skillId);
+  let skill;
+  try {
+    skill = await findSkill(skillId);
+  } catch (e) {
+    next(e);
+    return;
+  }
   if (!skill) {
     next(new NotFoundError(`A skill with the id "${id}" could not be found.`));
     return;

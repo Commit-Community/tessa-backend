@@ -1,4 +1,4 @@
-const { isRepoCollaborator } = require("./githubService");
+const { isOrgMember } = require("./githubService");
 const { UnauthorizedError } = require("./httpErrors");
 
 exports.isAuthenticated = (req, res, next) => {
@@ -9,13 +9,27 @@ exports.isAuthenticated = (req, res, next) => {
   next(new UnauthorizedError());
 };
 
-exports.isCollaborator = async (req, res, next) => {
-  const hasCollaboratorAccess = await isRepoCollaborator(
-    process.env.GITHUB_ACCESS_TOKEN,
+exports.isMember = (githubOrganizationName) => async (req, res, next) => {
+  if (!req.session.githubUsername) {
+    next(new UnauthorizedError());
+    return;
+  }
+  const isUserPublicMemberOfOrg = await isOrgMember(
+    req.session.accessToken,
     req.session.githubUsername,
-    "davidvandusen/tessa"
+    githubOrganizationName
   );
-  if (hasCollaboratorAccess) {
+  if (isUserPublicMemberOfOrg) {
+    next();
+    return;
+  }
+  next(new UnauthorizedError());
+};
+
+exports.isAdmin = (req, res, next) => {
+  // HACK While the project is being bootstrapped, userId = 1 will be
+  //      predictably someone who is rightfully an administrator.
+  if (req.session.userId === "1") {
     next();
     return;
   }

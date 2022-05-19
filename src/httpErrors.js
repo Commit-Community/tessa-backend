@@ -20,5 +20,11 @@ NotFoundError.prototype.message = "The requested resource does not exist.";
 NotFoundError.prototype.status = 404;
 exports.NotFoundError = NotFoundError;
 
+class UnprocessableEntityError extends HttpError {}
+UnprocessableEntityError.prototype.message =
+  "The content body of the request is not valid.";
+UnprocessableEntityError.prototype.status = 422;
+exports.UnprocessableEntityError = UnprocessableEntityError;
+
 class InternalServerError extends HttpError {}
 exports.InternalServerError = InternalServerError;
