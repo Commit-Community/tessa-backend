@@ -24,7 +24,7 @@ reflectionsRouter.post("/", async (req, res, next) => {
   if (!("skill_id" in req.body) || !("statement_id" in req.body)) {
     next(
       new UnprocessableEntityError(
-        "The request body must have skill_id and statement_id properties."
+        'The request body must have "skill_id" and "statement_id" properties.'
       )
     );
     return;

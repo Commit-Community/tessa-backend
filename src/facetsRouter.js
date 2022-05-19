@@ -28,7 +28,7 @@ facetsRouter.post("/", isAdmin, async (req, res, next) => {
   ) {
     next(
       new UnprocessableEntityError(
-        "The request body must be an object with name, recommendation_prompt and sort_order properties."
+        'The request body must be an object with "name", "recommendation_prompt" and "sort_order" properties.'
       )
     );
     return;
@@ -39,19 +39,17 @@ facetsRouter.post("/", isAdmin, async (req, res, next) => {
     sort_order: sortOrder,
   } = req.body;
   if (!isNonWhitespaceOnlyString(name)) {
-    next(new UnprocessableEntityError(`"${name}" must contain text.`));
+    next(new UnprocessableEntityError('"name" must contain text.'));
     return;
   }
   if (!isNonWhitespaceOnlyString(recommendationPrompt)) {
     next(
-      new UnprocessableEntityError(
-        `"${recommendationPrompt}" must contain text.`
-      )
+      new UnprocessableEntityError('"recommendation_prompt" must contain text.')
     );
     return;
   }
   if (!Number.isSafeInteger(sortOrder)) {
-    next(new UnprocessableEntityError(`"${sortOrder}" must be an integer.`));
+    next(new UnprocessableEntityError('"sort_order" must be an integer.'));
     return;
   }
   let facet;
