@@ -30,6 +30,11 @@ describe("reflectionsRouter", () => {
           done(err);
         });
     });
+
+    it("should respond with an internal server error if there is an error querying for the reflections", (done) => {
+      listReflections.mockRejectedValueOnce(new Error());
+      appAgent.get("/").expect(500, done);
+    });
   });
 
   describe("POST /", () => {
@@ -82,6 +87,15 @@ describe("reflectionsRouter", () => {
         .post("/")
         .send({ statement_id: 2, skill_id: 0 })
         .expect(422, done);
+    });
+
+    it("should respond with an internal server error if there is an error creating the reflection", (done) => {
+      mockUserId(1);
+      createReflection.mockRejectedValueOnce(new Error());
+      appAgent
+        .post("/")
+        .send({ statement_id: 2, skill_id: 3 })
+        .expect(500, done);
     });
   });
 });

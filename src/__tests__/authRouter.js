@@ -89,6 +89,32 @@ describe("authRouter", () => {
     it("should respond with a bad request error if code is not passed", (done) => {
       appAgent.get("/github/oauth/callback").expect(400, done);
     });
+
+    it("should respond with ain internal server error if the request to get an access token fails", (done) => {
+      getAccessToken.mockRejectedValueOnce(new Error());
+      appAgent.get("/github/oauth/callback?code=test_code").expect(500, done);
+    });
+
+    it("should respond with ain internal server error if the request to get the GitHub user details fails", (done) => {
+      getAccessToken.mockResolvedValueOnce("test_access_token");
+      getGithubUser.mockRejectedValueOnce(new Error());
+      appAgent.get("/github/oauth/callback?code=test_code").expect(500, done);
+    });
+
+    it("should respond with ain internal server error if there is an error querying for the user", (done) => {
+      getAccessToken.mockResolvedValueOnce("test_access_token");
+      getGithubUser.mockResolvedValueOnce({ id: 100, login: "test" });
+      findUserByGithubId.mockRejectedValueOnce(new Error());
+      appAgent.get("/github/oauth/callback?code=test_code").expect(500, done);
+    });
+
+    it("should respond with ain internal server error if there is an error creating the user", (done) => {
+      getAccessToken.mockResolvedValueOnce("test_access_token");
+      getGithubUser.mockResolvedValueOnce({ id: 100, login: "test" });
+      findUserByGithubId.mockResolvedValueOnce(undefined);
+      createUser.mockRejectedValueOnce(new Error());
+      appAgent.get("/github/oauth/callback?code=test_code").expect(500, done);
+    });
   });
 
   describe("GET /logout", () => {

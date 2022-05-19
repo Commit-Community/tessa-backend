@@ -8,8 +8,14 @@ const { UnprocessableEntityError } = require("./httpErrors");
 
 const facetsRouter = new Router();
 
-facetsRouter.get("/", async (req, res) => {
-  const facets = await listFacets();
+facetsRouter.get("/", async (req, res, next) => {
+  let facets;
+  try {
+    facets = await listFacets();
+  } catch (e) {
+    next(e);
+    return;
+  }
   res.json(collectionEnvelope(facets, facets.length));
 });
 
