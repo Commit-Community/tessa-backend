@@ -58,30 +58,30 @@ describe("reflectionsRouter", () => {
         });
     });
 
-    it("should respond with a bad request error if statement_id is not sent", (done) => {
+    it("should respond with an unprocessable entity error if statement_id is not sent", (done) => {
       mockUserId(1);
-      appAgent.post("/").send({ skill_id: 2 }).expect(400, done);
+      appAgent.post("/").send({ skill_id: 2 }).expect(422, done);
     });
 
-    it("should respond with a bad request error if skill_id is not sent", (done) => {
+    it("should respond with an unprocessable entity error if skill_id is not sent", (done) => {
       mockUserId(1);
-      appAgent.post("/").send({ statement_id: 2 }).expect(400, done);
+      appAgent.post("/").send({ statement_id: 2 }).expect(422, done);
     });
 
-    it("should respond with a bad request error if statement_id is not a valid id", (done) => {
+    it("should respond with an unprocessable entity error if statement_id is not a valid id", (done) => {
       mockUserId(1);
       appAgent
         .post("/")
         .send({ statement_id: 0, skill_id: 2 })
-        .expect(400, done);
+        .expect(422, done);
     });
 
-    it("should respond with a bad request error if skill_id is not a valid id", (done) => {
+    it("should respond with an unprocessable entity error if skill_id is not a valid id", (done) => {
       mockUserId(1);
       appAgent
         .post("/")
         .send({ statement_id: 2, skill_id: 0 })
-        .expect(400, done);
+        .expect(422, done);
     });
   });
 });

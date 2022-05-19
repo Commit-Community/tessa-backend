@@ -3,7 +3,7 @@ const { Router } = require("express");
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
 const { createReflection, listReflections } = require("./reflectionsService");
 const { isValidId } = require("./validators");
-const { BadRequestError } = require("./httpErrors");
+const { UnprocessableEntityError } = require("./httpErrors");
 
 const reflectionsRouter = new Router();
 
@@ -17,7 +17,7 @@ reflectionsRouter.post("/", async (req, res, next) => {
   const { userId } = req.session;
   if (!("skill_id" in req.body) || !("statement_id" in req.body)) {
     next(
-      new BadRequestError(
+      new UnprocessableEntityError(
         "The request body must have skill_id and statement_id properties."
       )
     );
@@ -26,14 +26,16 @@ reflectionsRouter.post("/", async (req, res, next) => {
   const skillId = Number(req.body.skill_id);
   if (!isValidId(skillId)) {
     next(
-      new BadRequestError(`"${req.body.skill_id}" is not a valid skill id.`)
+      new UnprocessableEntityError(
+        `"${req.body.skill_id}" is not a valid skill id.`
+      )
     );
     return;
   }
   const statementId = Number(req.body.statement_id);
   if (!isValidId(statementId)) {
     next(
-      new BadRequestError(
+      new UnprocessableEntityError(
         `"${req.body.statement_id}" is not a valid statement id.`
       )
     );
