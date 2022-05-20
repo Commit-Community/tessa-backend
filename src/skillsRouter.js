@@ -134,7 +134,7 @@ skillsRouter.put(
       next(e);
       return;
     }
-    res.status(201).json(itemEnvelope(skill));
+    res.json(itemEnvelope(skill));
   }
 );
 
