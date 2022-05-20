@@ -1,4 +1,9 @@
-const { findSkill, listSkills } = require("../skillsService");
+const {
+  findSkill,
+  listSkills,
+  createSkill,
+  updateSkill,
+} = require("../skillsService");
 const { mockQuery } = require("../db");
 
 jest.mock("../db");
@@ -60,6 +65,100 @@ describe("skillsService", () => {
         recommendations,
         tags: [tag],
       });
+    });
+  });
+
+  describe("createSkill", () => {
+    it("should insert a skill into the database with the given data, track the change, and return the skill", async () => {
+      const id = 1;
+      const name = "test name";
+      const description = "test description";
+      const userId = 2;
+      const skill = { id, name, description };
+      mockQuery(
+        "INSERT INTO skills (name, description) VALUES ($1, $2) RETURNING id, name, description;",
+        [name, description],
+        [skill]
+      );
+      mockQuery(
+        "INSERT INTO skill_changes (skill_id, name, description, user_id) VALUES ($1, $2, $3, $4);",
+        [id, name, description, userId],
+        [skill]
+      );
+      expect(await createSkill(name, description, userId)).toEqual(skill);
+    });
+
+    it("should return successfully but log an error if tracking the change fails", async () => {
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      const id = 1;
+      const name = "test name";
+      const description = "test description";
+      const userId = 2;
+      const skill = { id, name, description };
+      mockQuery(
+        "INSERT INTO skills (name, description) VALUES ($1, $2) RETURNING id, name, description;",
+        [name, description],
+        [skill]
+      );
+      const errorMessage = "test failure";
+      mockQuery(
+        "INSERT INTO skill_changes (skill_id, name, description, user_id) VALUES ($1, $2, $3, $4);",
+        [id, name, description, userId],
+        new Error(errorMessage)
+      );
+      expect(await createSkill(name, description, userId)).toEqual(skill);
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(errorMessage)
+      );
+      console.log = originalConsoleLog;
+    });
+  });
+
+  describe("updateSkill", () => {
+    it("should update a skill in the database with the given data, track the change, and return the skill", async () => {
+      const id = 1;
+      const name = "test name";
+      const description = "test description";
+      const userId = 2;
+      const skill = { id, name, description };
+      mockQuery(
+        "UPDATE skills SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description;",
+        [name, description, id],
+        [skill]
+      );
+      mockQuery(
+        "INSERT INTO skill_changes (skill_id, name, description, user_id) VALUES ($1, $2, $3, $4);",
+        [id, name, description, userId],
+        [skill]
+      );
+      expect(await updateSkill(id, name, description, userId)).toEqual(skill);
+    });
+
+    it("should return successfully but log an error if tracking the change fails", async () => {
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      const id = 1;
+      const name = "test name";
+      const description = "test description";
+      const userId = 2;
+      const skill = { id, name, description };
+      mockQuery(
+        "UPDATE skills SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description;",
+        [name, description, id],
+        [skill]
+      );
+      const errorMessage = "test failure";
+      mockQuery(
+        "INSERT INTO skill_changes (skill_id, name, description, user_id) VALUES ($1, $2, $3, $4);",
+        [id, name, description, userId],
+        new Error(errorMessage)
+      );
+      expect(await updateSkill(id, name, description, userId)).toEqual(skill);
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(errorMessage)
+      );
+      console.log = originalConsoleLog;
     });
   });
 });

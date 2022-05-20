@@ -2,7 +2,6 @@ const { collectionEnvelope, itemEnvelope } = require("../responseEnvelopes");
 const { createAppAgentForRouter } = require("../routerTestUtils");
 const { listStatements, createStatement } = require("../statementsService");
 const statementsRouter = require("../statementsRouter");
-const { isAdmin } = require("../authMiddleware");
 
 jest.mock("../authMiddleware");
 jest.mock("../statementsService");
@@ -35,10 +34,6 @@ describe("statementsRouter", () => {
   });
 
   describe("POST /", () => {
-    beforeEach(() => {
-      isAdmin.mockImplementation((req, res, next) => next());
-    });
-
     it("should create a statement with the given data", (done) => {
       const assertion = "test assertion";
       const facetId = 2;
