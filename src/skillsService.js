@@ -33,3 +33,38 @@ exports.findSkill = async (skillId) => {
     recommendations,
   };
 };
+
+const trackSkillChange = async (skillId, name, description, userId) => {
+  try {
+    await db.query(
+      "INSERT INTO skill_changes (skill_id, name, description, user_id) VALUES ($1, $2, $3, $4);",
+      [skillId, name, description, userId]
+    );
+  } catch (e) {
+    console.log(
+      `Failed to track a skill change with data skillId="${skillId}", name="${name}", description="${description}", userId="${userId}"}\n${e}`
+    );
+  }
+};
+
+exports.createSkill = async (name, description, userId) => {
+  const {
+    rows: [skill],
+  } = await db.query(
+    "INSERT INTO skills (name, description) VALUES ($1, $2) RETURNING id, name, description;",
+    [name, description]
+  );
+  await trackSkillChange(skill.id, name, description, userId);
+  return skill;
+};
+
+exports.updateSkill = async (skillId, name, description, userId) => {
+  const {
+    rows: [skill],
+  } = await db.query(
+    "UPDATE skills SET name = $1, description = $2 WHERE id = $3 RETURNING id, name, description;",
+    [name, description, skillId]
+  );
+  await trackSkillChange(skillId, name, description, userId);
+  return skill;
+};
