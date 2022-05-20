@@ -1,7 +1,6 @@
 const { collectionEnvelope, itemEnvelope } = require("../responseEnvelopes");
 const { createAppAgentForRouter } = require("../routerTestUtils");
 const facetsRouter = require("../facetsRouter");
-const { isAdmin } = require("../authMiddleware");
 const { listFacets, createFacet } = require("../facetsService");
 
 jest.mock("../facetsService");
@@ -34,10 +33,6 @@ describe("facetsRouter", () => {
   });
 
   describe("POST /", () => {
-    beforeEach(() => {
-      isAdmin.mockImplementation((req, res, next) => next());
-    });
-
     it("should create a facet with the given data", (done) => {
       const name = "test name";
       const recommendationPrompt = "test recommendation prompt";
