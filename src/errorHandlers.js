@@ -15,11 +15,14 @@ exports.handleErrors = (err, req, res, next) => {
     next(err);
     return;
   }
-  console.log(err);
   if (err instanceof HttpError) {
+    if (err.status >= 500) {
+      console.log(err);
+    }
     res.status(err.status);
     res.json(errorEnvelope(err.message));
   } else {
+    console.log(err);
     res.status(InternalServerError.prototype.status);
     res.json(errorEnvelope(InternalServerError.prototype.message));
   }

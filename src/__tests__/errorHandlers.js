@@ -47,6 +47,17 @@ describe("errorHandlers", () => {
       expect(json).toHaveBeenCalledWith(
         errorEnvelope(ImATeapotError.prototype.message)
       );
+      expect(console.log).not.toHaveBeenCalled();
+      console.log = originalConsoleLog;
+    });
+
+    it("should log an HttpError with status >= 500", () => {
+      const originalConsoleLog = console.log;
+      console.log = jest.fn();
+      const status = jest.fn();
+      const json = jest.fn();
+      const err = new InternalServerError();
+      handleErrors(err, {}, { headersSent: false, json, status }, jest.fn());
       expect(console.log).toHaveBeenCalled();
       console.log = originalConsoleLog;
     });
@@ -62,6 +73,7 @@ describe("errorHandlers", () => {
       expect(json).toHaveBeenCalledWith(
         errorEnvelope(InternalServerError.prototype.message)
       );
+      expect(console.log).toHaveBeenCalled();
       console.log = originalConsoleLog;
     });
   });
