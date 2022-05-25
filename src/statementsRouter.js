@@ -33,11 +33,12 @@ statementsRouter.post("/", isAdmin, async (req, res, next) => {
     );
     return;
   }
-  const { assertion, facet_id: facetId, sort_order: sortOrder } = req.body;
+  const { assertion, sort_order: sortOrder } = req.body;
   if (!isNonWhitespaceOnlyString(assertion)) {
     next(new UnprocessableEntityError('"assertion" must contain text.'));
     return;
   }
+  const facetId = Number(req.body.facet_id);
   if (!isValidId(facetId)) {
     next(new UnprocessableEntityError(`"${facetId}" is not a valid facet ID.`));
     return;

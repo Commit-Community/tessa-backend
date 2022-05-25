@@ -34,17 +34,19 @@ recommendationsRouter.post(
       );
       return;
     }
-    const { facet_id: facetId, skill_id: skillId, markdown } = req.body;
+    const { markdown } = req.body;
     if (!isNonWhitespaceOnlyString(markdown)) {
       next(new UnprocessableEntityError('"markdown" must contain text.'));
       return;
     }
+    const facetId = Number(req.body.facet_id);
     if (!isValidId(facetId)) {
       next(
         new UnprocessableEntityError(`"${facetId}" is not a valid facet id.`)
       );
       return;
     }
+    const skillId = Number(req.body.skill_id);
     if (!isValidId(skillId)) {
       next(
         new UnprocessableEntityError(`"${skillId}" is not a valid skill id.`)
