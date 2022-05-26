@@ -23,7 +23,7 @@ describe("authRouter", () => {
         .get("/github/login")
         .expect(
           "Location",
-          "https://github.com/login/oauth/authorize?client_id=TEST_GITHUB_CLIENT_ID&redirect_uri=TEST_GITHUB_REDIRECT_URI"
+          "https://github.com/login/oauth/authorize?client_id=TEST_GITHUB_CLIENT_ID&redirect_uri=TEST_GITHUB_REDIRECT_URI&scope=read%3Aorg"
         )
         .expect(302, done);
     });

@@ -11,6 +11,7 @@ authRouter.get("/github/login", (req, res) => {
   const params = new URLSearchParams();
   params.set("client_id", process.env.GITHUB_CLIENT_ID);
   params.set("redirect_uri", process.env.GITHUB_REDIRECT_URI);
+  params.set("scope", ["read:org"].join(" "));
   res.redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
 });
 
@@ -66,6 +67,7 @@ authRouter.get("/session", (req, res) => {
     itemEnvelope({
       user_id: req.session.userId,
       github_username: req.session.githubUsername,
+      is_author: isAuthor,
     })
   );
 });
