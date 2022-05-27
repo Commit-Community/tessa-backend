@@ -19,7 +19,7 @@ statementsRouter.get("/", async (req, res, next) => {
   res.json(collectionEnvelope(statements, statements.length));
 });
 
-statementsRouter.post("/", isAdmin, async (req, res, next) => {
+statementsRouter.post("/", isAdmin(), async (req, res, next) => {
   if (
     typeof req.body !== "object" ||
     !("assertion" in req.body) ||

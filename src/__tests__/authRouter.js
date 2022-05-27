@@ -6,7 +6,11 @@ const {
   mockGithubUsername,
 } = require("../routerTestUtils");
 const { createUser, findUserByGithubId } = require("../usersService");
-const { getAccessToken, getGithubUser } = require("../githubService");
+const {
+  getAccessToken,
+  getGithubUser,
+  isTeamMember,
+} = require("../githubService");
 const { itemEnvelope } = require("../responseEnvelopes");
 
 jest.mock("../usersService");
@@ -131,18 +135,72 @@ describe("authRouter", () => {
   });
 
   describe("GET /session", () => {
-    it("should respond with data from the user's session", (done) => {
+    it("should respond with data from the user's session and their roles", (done) => {
       const userId = 1;
       mockUserId(userId);
       const githubUsername = "test-github-username";
       mockGithubUsername(githubUsername);
-      appAgent
-        .get("/session")
-        .expect(
-          200,
-          itemEnvelope({ github_username: githubUsername, user_id: userId }),
-          done
-        );
+      // 2 calls should be made to isTeamMember: authors team and admins team.
+      isTeamMember.mockResolvedValueOnce(true);
+      isTeamMember.mockResolvedValueOnce(true);
+      appAgent.get("/session").expect(
+        200,
+        itemEnvelope({
+          github_username: githubUsername,
+          user_id: userId,
+          roles: ["user", "author", "admin"],
+        }),
+        done
+      );
+    });
+
+    it("should not include author or admin roles if the logged in user does not have them", (done) => {
+      const userId = 1;
+      mockUserId(userId);
+      const githubUsername = "test-github-username";
+      mockGithubUsername(githubUsername);
+      // 2 calls should be made to isTeamMember: authors team and admins team.
+      isTeamMember.mockResolvedValueOnce(false);
+      isTeamMember.mockResolvedValueOnce(false);
+      appAgent.get("/session").expect(
+        200,
+        itemEnvelope({
+          github_username: githubUsername,
+          user_id: userId,
+          roles: ["user"],
+        }),
+        done
+      );
+    });
+
+    it("should respond with an anonymous session if the user isn't logged in", (done) => {
+      appAgent.get("/session").expect(
+        200,
+        itemEnvelope({
+          github_username: null,
+          user_id: null,
+          roles: ["anonymous"],
+        }),
+        done
+      );
+    });
+
+    it("should respond with an internal server error if the request to determine whether the user is an admin fails", (done) => {
+      mockUserId(1);
+      mockGithubUsername("test-github-username");
+      // 2 calls should be made to isTeamMember: authors team and admins team.
+      isTeamMember.mockResolvedValueOnce(true);
+      isTeamMember.mockRejectedValueOnce(new Error());
+      appAgent.get("/session").expect(500, done);
+    });
+
+    it("should respond with an internal server error if the request to determine whether the user is an author fails", (done) => {
+      mockUserId(1);
+      mockGithubUsername("test-github-username");
+      // 2 calls should be made to isTeamMember: authors team and admins team.
+      isTeamMember.mockRejectedValueOnce(new Error());
+      isTeamMember.mockResolvedValueOnce(true);
+      appAgent.get("/session").expect(500, done);
     });
   });
 });

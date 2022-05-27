@@ -6,6 +6,7 @@ const { mockUserId } = require("../routerTestUtils");
 const { createReflection } = require("../reflectionsService");
 
 jest.mock("../reflectionsService");
+jest.mock("../authMiddleware");
 
 describe("reflectionsRouter", () => {
   const appAgent = createAppAgentForRouter(reflectionsRouter);

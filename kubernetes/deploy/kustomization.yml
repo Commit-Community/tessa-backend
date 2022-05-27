@@ -10,6 +10,9 @@ resources:
 configMapGenerator:
   - name: tessa-backend-app-config
     literals:
+      - GITHUB_ADMINS_TEAM=tessa-admins
+      - GITHUB_AUTHORS_TEAM=tessa-authors
+      - GITHUB_AUTHZ_ORG=Commit-Community
       - GITHUB_CLIENT_ID=52f5f958056f86733495
       - GITHUB_REDIRECT_URI=https://tessa-backend-api.commit.community/auth/github/oauth/callback
       - HOSTNAME=0.0.0.0

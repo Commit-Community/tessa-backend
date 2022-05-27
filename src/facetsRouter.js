@@ -19,7 +19,7 @@ facetsRouter.get("/", async (req, res, next) => {
   res.json(collectionEnvelope(facets, facets.length));
 });
 
-facetsRouter.post("/", isAdmin, async (req, res, next) => {
+facetsRouter.post("/", isAdmin(), async (req, res, next) => {
   if (
     typeof req.body !== "object" ||
     !("name" in req.body) ||
