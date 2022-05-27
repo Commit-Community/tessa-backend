@@ -1,5 +1,5 @@
-const { isAuthenticated, isMember, isAdmin } = require("../authMiddleware");
-const { isOrgMember } = require("../githubService");
+const { isAuthenticated, isAuthor, isAdmin } = require("../authMiddleware");
+const { isTeamMember } = require("../githubService");
 const { UnauthorizedError } = require("../httpErrors");
 
 jest.mock("../githubService");
@@ -8,8 +8,14 @@ describe("authMiddleware", () => {
   describe("isAuthenticated", () => {
     it("should call next if the request session has user data", () => {
       const next = jest.fn();
-      isAuthenticated(
-        { session: { userId: "1", githubUsername: "test" } },
+      isAuthenticated()(
+        {
+          session: {
+            accessToken: "test_access_token",
+            githubUsername: "test",
+            userId: "1",
+          },
+        },
         {},
         next
       );
@@ -18,72 +24,84 @@ describe("authMiddleware", () => {
 
     it("should call next with an UnauthorizedError if the request session does not have user data", () => {
       const next = jest.fn();
-      isAuthenticated({ session: {} }, {}, next);
+      isAuthenticated()({ session: {} }, {}, next);
       expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
     });
   });
 
-  describe("isMember", () => {
-    it("should call next if the logged in user is a member of the organization", async () => {
-      const next = jest.fn();
-      isOrgMember.mockResolvedValue(true);
-      const githubOrganizationName = "test-organization";
-      const accessToken = "test_access_token";
-      const githubUsername = "test-github-username";
-      await isMember(githubOrganizationName)(
-        { session: { accessToken, githubUsername, userId: "1" } },
-        {},
-        next
-      );
-      expect(isOrgMember).toHaveBeenCalledWith(
-        accessToken,
-        githubUsername,
-        githubOrganizationName
-      );
-      expect(next).toHaveBeenCalledWith();
-    });
+  [
+    {
+      fnName: "isAdmin",
+      fnImpl: isAdmin,
+      teamNameEnvVar: "GITHUB_ADMINS_TEAM",
+    },
+    {
+      fnName: "isAuthor",
+      fnImpl: isAuthor,
+      teamNameEnvVar: "GITHUB_AUTHORS_TEAM",
+    },
+  ].forEach(({ fnName, fnImpl, teamNameEnvVar }) => {
+    describe(fnName, () => {
+      it("should call next if the current user is a member of the configured team in the configured organization", async () => {
+        process.env.GITHUB_AUTHZ_ORG = "TEST_GITHUB_AUTHZ_ORG";
+        process.env[teamNameEnvVar] = `TEST_${teamNameEnvVar}`;
+        const next = jest.fn();
+        const accessToken = "test_access_token";
+        const githubUsername = "test";
+        isTeamMember.mockResolvedValueOnce(true);
+        await fnImpl()(
+          { session: { accessToken, githubUsername, userId: "1" } },
+          {},
+          next
+        );
+        expect(isTeamMember).toHaveBeenCalledWith(
+          accessToken,
+          githubUsername,
+          process.env.GITHUB_AUTHZ_ORG,
+          process.env[teamNameEnvVar]
+        );
+        expect(next).toHaveBeenCalledWith();
+      });
 
-    it("should call next with an UnauthorizedError if no user is logged in", async () => {
-      const next = jest.fn();
-      await isMember("test-organization")({ session: {} }, {}, next);
-      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
-    });
+      it("should call next with an UnauthorizedError if the user if the user is not logged in", async () => {
+        const next = jest.fn();
+        await fnImpl()({ session: {} }, {}, next);
+        expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+      });
 
-    it("should call next with an UnauthorizedError if the logged in user is not a member of the organization", async () => {
-      const next = jest.fn();
-      isOrgMember.mockResolvedValue(false);
-      await isMember("test-organization")(
-        {
-          session: {
-            accessToken: "test_access_token",
-            userId: 1,
-            githubUsername: "test",
+      it("should call next with an UnauthorizedError if the user is not a member of the team", async () => {
+        const next = jest.fn();
+        isTeamMember.mockResolvedValueOnce(false);
+        await fnImpl()(
+          {
+            session: {
+              accessToken: "test_access_token",
+              githubUsername: "test",
+              userId: "1",
+            },
           },
-        },
-        {},
-        next
-      );
-      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
-    });
-  });
+          {},
+          next
+        );
+        expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+      });
 
-  describe("isAdmin", () => {
-    it("should call next if the logged in user has user ID 1", () => {
-      const next = jest.fn();
-      isAdmin({ session: { userId: "1", githubUsername: "test" } }, {}, next);
-      expect(next).toHaveBeenCalledWith();
-    });
-
-    it("should call next with an UnauthorizedError if no user is logged in", () => {
-      const next = jest.fn();
-      isAdmin({ session: {} }, {}, next);
-      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
-    });
-
-    it("should call next with an UnauthorizedError if the logged in user does not have user ID 1", () => {
-      const next = jest.fn();
-      isAdmin({ session: { userId: "2", githubUsername: "test" } }, {}, next);
-      expect(next).toHaveBeenCalledWith(expect.any(UnauthorizedError));
+      it("should call next with an error if the request to authorize the user fails", async () => {
+        const next = jest.fn();
+        isTeamMember.mockRejectedValueOnce(new Error());
+        await fnImpl()(
+          {
+            session: {
+              accessToken: "test_access_token",
+              githubUsername: "test",
+              userId: "1",
+            },
+          },
+          {},
+          next
+        );
+        expect(next).toHaveBeenCalledWith(expect.any(Error));
+      });
     });
   });
 });

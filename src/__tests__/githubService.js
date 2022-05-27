@@ -2,7 +2,7 @@ const request = require("../request");
 const {
   getAccessToken,
   getGithubUser,
-  isOrgMember,
+  isTeamMember,
 } = require("../githubService");
 
 jest.mock("../request");
@@ -36,12 +36,13 @@ describe("githubService", () => {
   describe("getGithubUser", () => {
     it("should get details about the current user from the github api", async () => {
       const accessToken = "test_access_token";
+      const githubUser = { id: 100 };
       const mockSet = jest.fn();
       const mockRequest = { set: mockSet };
       mockRequestGet.mockReturnValue(mockRequest);
       mockSet.mockReturnValueOnce(mockRequest);
-      mockSet.mockReturnValueOnce({ body: { id: 100 } });
-      expect(await getGithubUser(accessToken)).toEqual({ id: 100 });
+      mockSet.mockReturnValueOnce({ body: githubUser });
+      expect(await getGithubUser(accessToken)).toEqual(githubUser);
       expect(mockRequestGet).toHaveBeenCalledWith(
         "https://api.github.com/user"
       );
@@ -53,12 +54,15 @@ describe("githubService", () => {
     });
   });
 
-  describe("isOrgMember", () => {
-    it("should return whether the user is a member of the organization", async () => {
+  describe("isTeamMember", () => {
+    it("should resolve to true if the specified user is a member of the specified team", async () => {
       const accessToken = "test_access_token";
+      const githubUsername = "test-github-username";
+      const organizationName = "test-organization";
+      const teamName = "test-team";
+      const response = { status: 200, body: { state: "active" } };
       const mockSet = jest.fn();
       const mockOk = jest.fn((callback) => {
-        const response = { status: 204 };
         expect(callback(response)).toBeTruthy();
         return response;
       });
@@ -66,19 +70,58 @@ describe("githubService", () => {
       mockRequestGet.mockReturnValue(mockRequest);
       mockSet.mockReturnValueOnce(mockRequest);
       mockSet.mockReturnValueOnce({ ok: mockOk });
-      const organizationName = "test-organization";
-      const githubUsername = "test-github-username";
       expect(
-        await isOrgMember(accessToken, githubUsername, organizationName)
+        await isTeamMember(
+          accessToken,
+          githubUsername,
+          organizationName,
+          teamName
+        )
       ).toEqual(true);
       expect(mockRequestGet).toHaveBeenCalledWith(
-        `https://api.github.com/orgs/${organizationName}/members/${githubUsername}`
+        `https://api.github.com/orgs/${organizationName}/teams/${teamName}/memberships/${githubUsername}`
       );
       expect(mockSet).toHaveBeenCalledWith("User-Agent", "TESSA API");
       expect(mockSet).toHaveBeenCalledWith(
         "Authorization",
         `token ${accessToken}`
       );
+    });
+
+    it("should resolve to false if the specified user is not a member of the specified team", async () => {
+      const mockSet = jest.fn();
+      const mockRequest = { set: mockSet };
+      mockRequestGet.mockReturnValue(mockRequest);
+      mockSet.mockReturnValueOnce(mockRequest);
+      mockSet.mockReturnValueOnce({
+        ok: jest.fn(() => ({ status: 404, body: {} })),
+      });
+      expect(
+        await isTeamMember(
+          "test_access_token",
+          "test-github-username",
+          "test-organization",
+          "test-team"
+        )
+      ).toEqual(false);
+    });
+
+    it("should resolve to false if the specified user's membership on the specified team is pending", async () => {
+      const mockSet = jest.fn();
+      const mockRequest = { set: mockSet };
+      mockRequestGet.mockReturnValue(mockRequest);
+      mockSet.mockReturnValueOnce(mockRequest);
+      mockSet.mockReturnValueOnce({
+        ok: jest.fn(() => ({ status: 200, body: { state: "pending" } })),
+      });
+      expect(
+        await isTeamMember(
+          "test_access_token",
+          "test-github-username",
+          "test-organization",
+          "test-team"
+        )
+      ).toEqual(false);
     });
   });
 });

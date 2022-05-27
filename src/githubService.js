@@ -1,5 +1,7 @@
 const request = require("./request");
 
+const userAgentString = "TESSA API";
+
 exports.getAccessToken = async (code) => {
   const params = new URLSearchParams();
   params.set("client_id", process.env.GITHUB_CLIENT_ID);
@@ -17,18 +19,23 @@ exports.getAccessToken = async (code) => {
 exports.getGithubUser = async (accessToken) => {
   const response = await request
     .get("https://api.github.com/user")
-    .set("User-Agent", "TESSA API")
+    .set("User-Agent", userAgentString)
     .set("Authorization", `token ${accessToken}`);
   return response.body;
 };
 
-exports.isOrgMember = async (accessToken, githubUsername, organizationName) => {
+exports.isTeamMember = async (
+  accessToken,
+  githubUsername,
+  organizationName,
+  teamName
+) => {
   const response = await request
     .get(
-      `https://api.github.com/orgs/${organizationName}/members/${githubUsername}`
+      `https://api.github.com/orgs/${organizationName}/teams/${teamName}/memberships/${githubUsername}`
     )
-    .set("User-Agent", "TESSA API")
+    .set("User-Agent", userAgentString)
     .set("Authorization", `token ${accessToken}`)
     .ok(({ status }) => status);
-  return response.status === 204;
+  return response.status === 200 && response.body.state === "active";
 };

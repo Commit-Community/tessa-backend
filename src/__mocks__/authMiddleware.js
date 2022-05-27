@@ -1,5 +1,5 @@
-exports.isAuthenticated = (req, res, next) => next();
+exports.isAuthenticated = () => (req, res, next) => next();
 
-exports.isMember = () => (req, res, next) => next();
+exports.isAuthor = () => (req, res, next) => next();
 
-exports.isAdmin = (req, res, next) => next();
+exports.isAdmin = () => (req, res, next) => next();

@@ -2,12 +2,13 @@ const { Router } = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
 const { createReflection, listReflections } = require("./reflectionsService");
+const { isAuthenticated } = require("./authMiddleware");
 const { isValidId } = require("./validators");
 const { UnprocessableEntityError } = require("./httpErrors");
 
 const reflectionsRouter = new Router();
 
-reflectionsRouter.get("/", async (req, res, next) => {
+reflectionsRouter.get("/", isAuthenticated(), async (req, res, next) => {
   const { userId } = req.session;
   let reflections;
   try {
@@ -19,7 +20,7 @@ reflectionsRouter.get("/", async (req, res, next) => {
   res.json(collectionEnvelope(reflections, reflections.length));
 });
 
-reflectionsRouter.post("/", async (req, res, next) => {
+reflectionsRouter.post("/", isAuthenticated(), async (req, res, next) => {
   const { userId } = req.session;
   if (!("skill_id" in req.body) || !("statement_id" in req.body)) {
     next(
