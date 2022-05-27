@@ -1,10 +1,14 @@
 const { Router } = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
-const { createReflection, listReflections } = require("./reflectionsService");
+const {
+  createReflection,
+  listReflections,
+  findLatestReflectionForSkillFacet,
+} = require("./reflectionsService");
 const { isAuthenticated } = require("./authMiddleware");
 const { isValidId } = require("./validators");
-const { UnprocessableEntityError } = require("./httpErrors");
+const { UnprocessableEntityError, BadRequestError } = require("./httpErrors");
 
 const reflectionsRouter = new Router();
 
@@ -19,6 +23,36 @@ reflectionsRouter.get("/", isAuthenticated(), async (req, res, next) => {
   }
   res.json(collectionEnvelope(reflections, reflections.length));
 });
+
+reflectionsRouter.get(
+  "/latest/skills/:skillId/facets/:facetId",
+  async (req, res, next) => {
+    const { userId } = req.session;
+    const { skillId, facetId } = req.params;
+    const skillIdNumber = Number(skillId);
+    if (!isValidId(skillIdNumber)) {
+      next(new BadRequestError(`"${skillId}" is not a valid skill id.`));
+      return;
+    }
+    const facetIdNumber = Number(facetId);
+    if (!isValidId(facetIdNumber)) {
+      next(new BadRequestError(`"${facetId}" is not a valid facet id.`));
+      return;
+    }
+    let reflection;
+    try {
+      reflection = await findLatestReflectionForSkillFacet(
+        userId,
+        skillId,
+        facetId
+      );
+    } catch (e) {
+      next(e);
+      return;
+    }
+    res.json(itemEnvelope(reflection));
+  }
+);
 
 reflectionsRouter.post("/", isAuthenticated(), async (req, res, next) => {
   const { userId } = req.session;
