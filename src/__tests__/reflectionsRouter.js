@@ -1,6 +1,9 @@
 const { collectionEnvelope, itemEnvelope } = require("../responseEnvelopes");
 const { createAppAgentForRouter } = require("../routerTestUtils");
-const { listReflections } = require("../reflectionsService");
+const {
+  listReflections,
+  findLatestReflectionForSkillFacet,
+} = require("../reflectionsService");
 const reflectionsRouter = require("../reflectionsRouter");
 const { mockUserId } = require("../routerTestUtils");
 const { createReflection } = require("../reflectionsService");
@@ -35,6 +38,45 @@ describe("reflectionsRouter", () => {
     it("should respond with an internal server error if there is an error querying for the reflections", (done) => {
       listReflections.mockRejectedValueOnce(new Error());
       appAgent.get("/").expect(500, done);
+    });
+  });
+
+  describe("/latest/skills/:skillId/facets/:facetId", () => {
+    it("should respond with the latest reflection with the given skill and facet ids for the current user", (done) => {
+      const userId = "1";
+      mockUserId(userId);
+      const skillId = "2";
+      const facetId = "3";
+      const reflection = {
+        id: "4",
+        skill_id: skillId,
+        statement_id: "5",
+        created_at: "2000-01-01T00:00:00.000Z",
+      };
+      findLatestReflectionForSkillFacet.mockResolvedValueOnce(reflection);
+      appAgent
+        .get(`/latest/skills/${skillId}/facets/${facetId}`)
+        .expect(200, itemEnvelope(reflection), (err) => {
+          expect(findLatestReflectionForSkillFacet).toHaveBeenCalledWith(
+            userId,
+            skillId,
+            facetId
+          );
+          done(err);
+        });
+    });
+
+    it("should respond with a bad request error if skillId is not a valid id", (done) => {
+      appAgent.get("/latest/skills/0/facets/1").expect(400, done);
+    });
+
+    it("should respond with a bad request error if skillId is not a valid id", (done) => {
+      appAgent.get("/latest/skills/1/facets/0").expect(400, done);
+    });
+
+    it("should respond with an internal server error if there is an error querying for the reflection", (done) => {
+      findLatestReflectionForSkillFacet.mockRejectedValueOnce(new Error());
+      appAgent.get("/latest/skills/1/facets/1").expect(500, done);
     });
   });
 
