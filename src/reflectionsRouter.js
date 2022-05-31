@@ -5,6 +5,7 @@ const {
   createReflection,
   listReflections,
   findLatestReflectionForSkillFacet,
+  listSkillsOfLatestReflectionsByFacetStatements,
 } = require("./reflectionsService");
 const { isAuthenticated } = require("./authMiddleware");
 const { isValidId } = require("./validators");
@@ -23,6 +24,28 @@ reflectionsRouter.get("/", isAuthenticated(), async (req, res, next) => {
   }
   res.json(collectionEnvelope(reflections, reflections.length));
 });
+
+reflectionsRouter.get(
+  "/latest/skills-by-facet-statements",
+  isAuthenticated(),
+  async (req, res, next) => {
+    const { userId } = req.session;
+    let skillsOfLatestReflectionsByFacetStatements;
+    try {
+      skillsOfLatestReflectionsByFacetStatements =
+        await listSkillsOfLatestReflectionsByFacetStatements(userId);
+    } catch (e) {
+      next(e);
+      return;
+    }
+    res.json(
+      collectionEnvelope(
+        skillsOfLatestReflectionsByFacetStatements,
+        skillsOfLatestReflectionsByFacetStatements.length
+      )
+    );
+  }
+);
 
 reflectionsRouter.get(
   "/latest/skills/:skillId/facets/:facetId",
