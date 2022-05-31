@@ -1,4 +1,8 @@
-const { listStatements, createStatement } = require("../statementsService");
+const {
+  listStatements,
+  createStatement,
+  updateStatement,
+} = require("../statementsService");
 const { mockQuery } = require("../db");
 
 jest.mock("../db");
@@ -37,6 +41,25 @@ describe("statementsService", () => {
       expect(await createStatement(assertion, facetId, sortOrder)).toEqual(
         statement
       );
+    });
+  });
+
+  describe("updateStatement", () => {
+    it("should update the assertion of the specified statement and return it", async () => {
+      const assertion = "test assertion";
+      const statementId = 1;
+      const statement = {
+        id: statementId,
+        assertion,
+        facet_id: 2,
+        sort_order: 0,
+      };
+      mockQuery(
+        "UPDATE statements SET assertion = $1 WHERE id = $2 RETURNING id, assertion, facet_id, sort_order;",
+        [assertion, statementId],
+        [statement]
+      );
+      expect(await updateStatement(statementId, assertion)).toEqual(statement);
     });
   });
 });

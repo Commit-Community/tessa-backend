@@ -16,3 +16,13 @@ exports.createStatement = async (assertion, facetId, sortOrder) => {
   );
   return statement;
 };
+
+exports.updateStatement = async (statementId, assertion) => {
+  const {
+    rows: [statement],
+  } = await db.query(
+    "UPDATE statements SET assertion = $1 WHERE id = $2 RETURNING id, assertion, facet_id, sort_order;",
+    [assertion, statementId]
+  );
+  return statement;
+};

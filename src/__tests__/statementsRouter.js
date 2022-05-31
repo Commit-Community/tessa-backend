@@ -1,6 +1,10 @@
 const { collectionEnvelope, itemEnvelope } = require("../responseEnvelopes");
 const { createAppAgentForRouter } = require("../routerTestUtils");
-const { listStatements, createStatement } = require("../statementsService");
+const {
+  listStatements,
+  createStatement,
+  updateStatement,
+} = require("../statementsService");
 const statementsRouter = require("../statementsRouter");
 
 jest.mock("../authMiddleware");
@@ -110,6 +114,50 @@ describe("statementsRouter", () => {
       appAgent
         .post("/")
         .send({ assertion: "test assertion", facet_id: 2, sort_order: 0 })
+        .expect(500, done);
+    });
+  });
+
+  describe("PUT /:id", () => {
+    it("should update the statement with the given data", (done) => {
+      const assertion = "test assertion";
+      const statementId = 1;
+      const statement = {
+        id: statementId,
+        assertion,
+        facet_id: 2,
+        sort_order: 0,
+      };
+      updateStatement.mockResolvedValueOnce(statement);
+      appAgent
+        .put(`/${statementId}`)
+        .send({ assertion })
+        .expect(200, itemEnvelope(statement), (err) => {
+          expect(updateStatement).toHaveBeenCalledWith(statementId, assertion);
+          done(err);
+        });
+    });
+
+    it("should respond with a bad request error if the id is not valid", (done) => {
+      appAgent
+        .put("/0")
+        .send({ assertion: "test assertion" })
+        .expect(400, done);
+    });
+
+    it("should respond with an unprocessable entity error if assertion is not sent", (done) => {
+      appAgent.put("/1").send({}).expect(422, done);
+    });
+
+    it("should respond with an unprocessable entity error if assertion is not valid", (done) => {
+      appAgent.put("/1").send({ assertion: "" }).expect(422, done);
+    });
+
+    it("should respond with an internal server error if there is an error updating the statement", (done) => {
+      updateStatement.mockRejectedValueOnce(new Error());
+      appAgent
+        .put("/1")
+        .send({ assertion: "test assertion" })
         .expect(500, done);
     });
   });
