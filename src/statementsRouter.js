@@ -1,9 +1,13 @@
 const { Router } = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
-const { listStatements, createStatement } = require("./statementsService");
+const {
+  listStatements,
+  createStatement,
+  updateStatement,
+} = require("./statementsService");
 const { isAdmin } = require("./authMiddleware");
-const { UnprocessableEntityError } = require("./httpErrors");
+const { UnprocessableEntityError, BadRequestError } = require("./httpErrors");
 const { isNonWhitespaceOnlyString, isValidId } = require("./validators");
 
 const statementsRouter = new Router();
@@ -55,6 +59,36 @@ statementsRouter.post("/", isAdmin(), async (req, res, next) => {
     return;
   }
   res.status(201).json(itemEnvelope(statement));
+});
+
+statementsRouter.put("/:id", isAdmin(), async (req, res, next) => {
+  const { id } = req.params;
+  const statementId = Number(id);
+  if (!isValidId(statementId)) {
+    next(new BadRequestError(`"${id}" is not a valid statement id.`));
+    return;
+  }
+  if (typeof req.body !== "object" || !("assertion" in req.body)) {
+    next(
+      new UnprocessableEntityError(
+        'The request body must be an object with an "assertion" property.'
+      )
+    );
+    return;
+  }
+  const { assertion } = req.body;
+  if (!isNonWhitespaceOnlyString(assertion)) {
+    next(new UnprocessableEntityError('"assertion" must contain text.'));
+    return;
+  }
+  let statement;
+  try {
+    statement = await updateStatement(statementId, assertion);
+  } catch (e) {
+    next(e);
+    return;
+  }
+  res.json(itemEnvelope(statement));
 });
 
 module.exports = statementsRouter;
