@@ -10,7 +10,7 @@ exports.listReflections = async (userId) => {
 
 exports.listSkillsOfLatestReflectionsByFacetStatements = async (userId) => {
   const { rows } = await db.query(
-    "SELECT DISTINCT ON (s.facet_id, r.skill_id) s.facet_id, r.statement_id, r.skill_id, MAX(r.created_at) FROM reflections r JOIN statements s ON r.statement_id = s.id WHERE r.user_id = $1 GROUP BY s.facet_id, r.statement_id, r.skill_id;",
+    "SELECT DISTINCT ON (s.facet_id, r.skill_id) s.facet_id, r.statement_id, r.skill_id, MAX(r.created_at) max_created_at FROM reflections r JOIN statements s ON r.statement_id = s.id WHERE r.user_id = $1 GROUP BY s.facet_id, r.statement_id, r.skill_id ORDER BY s.facet_id, r.skill_id, max_created_at DESC;",
     [userId]
   );
   const separator = ":";
