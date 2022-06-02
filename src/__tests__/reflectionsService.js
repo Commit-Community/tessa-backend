@@ -37,7 +37,7 @@ describe("reflectionsService", () => {
       const skillId = "4";
       const skillId2 = "5";
       mockQuery(
-        "SELECT DISTINCT ON (s.facet_id, r.skill_id) s.facet_id, r.statement_id, r.skill_id, MAX(r.created_at) FROM reflections r JOIN statements s ON r.statement_id = s.id WHERE r.user_id = $1 GROUP BY s.facet_id, r.statement_id, r.skill_id;",
+        "SELECT DISTINCT ON (s.facet_id, r.skill_id) s.facet_id, r.statement_id, r.skill_id, MAX(r.created_at) max_created_at FROM reflections r JOIN statements s ON r.statement_id = s.id WHERE r.user_id = $1 GROUP BY s.facet_id, r.statement_id, r.skill_id ORDER BY s.facet_id, r.skill_id, max_created_at DESC;",
         [userId],
         [
           { facet_id: facetId, statement_id: statementId, skill_id: skillId },
