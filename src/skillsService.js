@@ -68,3 +68,53 @@ exports.updateSkill = async (skillId, name, description, userId) => {
   await trackSkillChange(skillId, name, description, userId);
   return skill;
 };
+
+const findTagByName = async (tagName) => {
+  const {
+    rows: [tag],
+  } = await db.query(
+    "SELECT id, name FROM tags WHERE name = $1 ORDER BY id LIMIT 1;",
+    [tagName]
+  );
+  return tag;
+};
+
+const createTag = async (tagName) => {
+  const {
+    rows: [tag],
+  } = await db.query(
+    "INSERT INTO tags (name) VALUES ($1) RETURNING id, name;",
+    [tagName]
+  );
+  return tag;
+};
+
+const selectOrCreateTagByName = async (tagName) =>
+  (await findTagByName(tagName)) || (await createTag(tagName));
+
+exports.tagSkill = async (skillId, tagName) => {
+  const tag = await selectOrCreateTagByName(tagName);
+  const {
+    rows: [existingSkillTag],
+  } = await db.query(
+    "SELECT id, skill_id, tag_id FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+    [skillId, tag.id]
+  );
+  if (existingSkillTag) {
+    return existingSkillTag;
+  }
+  const {
+    rows: [newSkillTag],
+  } = await db.query(
+    "INSERT INTO skills_tags (skill_id, tag_id) VALUES ($1, $2) RETURNING id, skill_id, tag_id;",
+    [skillId, tag.id]
+  );
+  return newSkillTag;
+};
+
+exports.untagSkill = async (skillId, tagId) => {
+  await db.query(
+    "DELETE FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+    [skillId, tagId]
+  );
+};
