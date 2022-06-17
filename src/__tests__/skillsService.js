@@ -54,11 +54,11 @@ describe("skillsService", () => {
         [skillId],
         recommendations
       );
-      const tag = "test tag";
+      const tag = { id: 4, name: "test tag" };
       mockQuery(
-        "SELECT name FROM tags JOIN skills_tags ON skills_tags.tag_id = tags.id WHERE skills_tags.skill_id = $1 ORDER BY name;",
+        "SELECT tags.id, name FROM tags JOIN skills_tags ON skills_tags.tag_id = tags.id WHERE skills_tags.skill_id = $1 ORDER BY name;",
         [skillId],
-        [{ name: tag }]
+        [{ id: 4, name: "test tag" }]
       );
       expect(await findSkill(skillId)).toEqual({
         ...skill,

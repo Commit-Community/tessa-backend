@@ -19,7 +19,7 @@ exports.findSkill = async (skillId) => {
   }
   const [{ rows: tags }, { rows: recommendations }] = await Promise.all([
     db.query(
-      "SELECT name FROM tags JOIN skills_tags ON skills_tags.tag_id = tags.id WHERE skills_tags.skill_id = $1 ORDER BY name;",
+      "SELECT tags.id, name FROM tags JOIN skills_tags ON skills_tags.tag_id = tags.id WHERE skills_tags.skill_id = $1 ORDER BY name;",
       [skillId]
     ),
     db.query(
@@ -29,7 +29,7 @@ exports.findSkill = async (skillId) => {
   ]);
   return {
     ...skill,
-    tags: tags.map(({ name }) => name),
+    tags,
     recommendations,
   };
 };
