@@ -2,6 +2,8 @@ const {
   findSkill,
   listSkills,
   createSkill,
+  tagSkill,
+  untagSkill,
   updateSkill,
 } = require("../skillsService");
 const { mockQuery } = require("../db");
@@ -159,6 +161,103 @@ describe("skillsService", () => {
         expect.stringContaining(errorMessage)
       );
       console.log = originalConsoleLog;
+    });
+  });
+
+  describe("tagSkill", () => {
+    it("should return an existing association between a tag and skill", async () => {
+      const skillId = "1";
+      const tagId = "2";
+      const tagName = "test";
+      const skillTag = {
+        id: "3",
+        skill_id: skillId,
+        tag_id: tagId,
+      };
+      mockQuery(
+        "SELECT id, name FROM tags WHERE name = $1 ORDER BY id LIMIT 1;",
+        [tagName],
+        [{ id: tagId, name: tagName }]
+      );
+      mockQuery(
+        "SELECT id, skill_id, tag_id FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+        [skillId, tagId],
+        [skillTag]
+      );
+      expect(await tagSkill(skillId, tagName)).toBe(skillTag);
+    });
+
+    it("should associate an existing tag with a skill", async () => {
+      const skillId = "1";
+      const tagId = "2";
+      const tagName = "test";
+      const skillTag = {
+        id: "3",
+        skill_id: skillId,
+        tag_id: tagId,
+      };
+      mockQuery(
+        "SELECT id, name FROM tags WHERE name = $1 ORDER BY id LIMIT 1;",
+        [tagName],
+        [{ id: tagId, name: tagName }]
+      );
+      mockQuery(
+        "SELECT id, skill_id, tag_id FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+        [skillId, tagId],
+        []
+      );
+      mockQuery(
+        "INSERT INTO skills_tags (skill_id, tag_id) VALUES ($1, $2) RETURNING id, skill_id, tag_id;",
+        [skillId, tagId],
+        [skillTag]
+      );
+      expect(await tagSkill(skillId, tagName)).toBe(skillTag);
+    });
+
+    it("should create a new skill if none exists with the given name", async () => {
+      const skillId = "1";
+      const tagId = "2";
+      const tagName = "test";
+      const tag = { id: tagId, name: tagName };
+      const skillTag = {
+        id: "3",
+        skill_id: skillId,
+        tag_id: tagId,
+      };
+      mockQuery(
+        "SELECT id, name FROM tags WHERE name = $1 ORDER BY id LIMIT 1;",
+        [tagName],
+        []
+      );
+      mockQuery(
+        "INSERT INTO tags (name) VALUES ($1) RETURNING id, name;",
+        [tagName],
+        [tag]
+      );
+      mockQuery(
+        "SELECT id, skill_id, tag_id FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+        [skillId, tagId],
+        []
+      );
+      mockQuery(
+        "INSERT INTO skills_tags (skill_id, tag_id) VALUES ($1, $2) RETURNING id, skill_id, tag_id;",
+        [skillId, tagId],
+        [skillTag]
+      );
+      expect(await tagSkill(skillId, tagName)).toBe(skillTag);
+    });
+  });
+
+  describe("untagSkill", () => {
+    it("should remove an association between a skill and tag", async () => {
+      const skillId = "1";
+      const tagId = "2";
+      mockQuery(
+        "DELETE FROM skills_tags WHERE skill_id = $1 AND tag_id = $2;",
+        [skillId, tagId],
+        []
+      );
+      await untagSkill(skillId, tagId);
     });
   });
 });
