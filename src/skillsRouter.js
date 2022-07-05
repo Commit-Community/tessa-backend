@@ -10,6 +10,8 @@ const {
   findSkill,
   listSkills,
   createSkill,
+  tagSkill,
+  untagSkill,
   updateSkill,
 } = require("./skillsService");
 const { isAuthor } = require("./authMiddleware");
@@ -131,5 +133,71 @@ skillsRouter.put("/:id", isAuthor(), async (req, res, next) => {
   }
   res.json(itemEnvelope(skill));
 });
+
+skillsRouter.post("/:id/tags", isAuthor(), async (req, res, next) => {
+  const { id } = req.params;
+  const skillId = Number(id);
+  if (!isValidId(skillId)) {
+    next(new BadRequestError(`"${id}" is not a valid skill id.`));
+    return;
+  }
+  let skill;
+  try {
+    skill = await findSkill(skillId);
+  } catch (e) {
+    next(e);
+    return;
+  }
+  if (!skill) {
+    next(new NotFoundError(`A skill with the id "${id}" could not be found.`));
+    return;
+  }
+  if (typeof req.body !== "object" || !("tag_name" in req.body)) {
+    next(
+      new UnprocessableEntityError(
+        'The request body must be an object with a "tag_name" property.'
+      )
+    );
+    return;
+  }
+  const { tag_name: tagName } = req.body;
+  if (!isNonWhitespaceOnlyString(tagName)) {
+    next(new UnprocessableEntityError('"tag_name" must contain text.'));
+    return;
+  }
+  let skillTag;
+  try {
+    skillTag = await tagSkill(skillId, tagName);
+  } catch (e) {
+    next(e);
+    return;
+  }
+  res.json(itemEnvelope(skillTag));
+});
+
+skillsRouter.delete(
+  "/:skillId/tags/:tagId",
+  isAuthor(),
+  async (req, res, next) => {
+    const { skillId: skillIdString, tagId: tagIdString } = req.params;
+    const skillId = Number(skillIdString);
+    if (!isValidId(skillId)) {
+      next(new BadRequestError(`"${skillIdString}" is not a valid skill id.`));
+      return;
+    }
+    const tagId = Number(tagIdString);
+    if (!isValidId(tagId)) {
+      next(new BadRequestError(`"${tagIdString}" is not a valid tag id.`));
+      return;
+    }
+    try {
+      await untagSkill(skillId, tagId);
+    } catch (e) {
+      next(e);
+      return;
+    }
+    res.json(itemEnvelope({ success: true }));
+  }
+);
 
 module.exports = skillsRouter;
