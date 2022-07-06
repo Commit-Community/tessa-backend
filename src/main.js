@@ -7,6 +7,7 @@ const fs = require("fs");
 const authRouter = require("./authRouter");
 const db = require("./db");
 const facetsRouter = require("./facetsRouter");
+const feedsRouter = require("./feedsRouter");
 const { handleNotFound, handleErrors } = require("./errorHandlers");
 const recommendationsRouter = require("./recommendationsRouter");
 const reflectionsRouter = require("./reflectionsRouter");
@@ -55,6 +56,7 @@ const main = async ({
   app.use("/", rootRouter);
   app.use("/auth", authRouter);
   app.use("/facets", facetsRouter);
+  app.use("/feeds", feedsRouter);
   app.use("/recommendations", recommendationsRouter);
   app.use("/reflections", reflectionsRouter);
   app.use("/statements", statementsRouter);
