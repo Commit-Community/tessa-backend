@@ -14,9 +14,11 @@ exports.listLatestChangedSkills = async () => {
   if (skillChanges.length === 0) {
     return [];
   }
-  const params = skillChanges.map((_, i) => `$${i+1}`);
+  const params = skillChanges.map((_, i) => `$${i + 1}`);
   const { rows: skills } = await db.query(
-    `SELECT id, name, description FROM skills WHERE id IN (${params.join(', ')});`,
+    `SELECT id, name, description FROM skills WHERE id IN (${params.join(
+      ", "
+    )});`,
     skillChanges.map((s) => s.skill_id)
   );
   return skills;
