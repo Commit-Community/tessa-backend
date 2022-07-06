@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { BadRequestError } = require("./httpErrors");
 const { createUser, findUserByGithubId } = require("./usersService");
@@ -9,7 +9,7 @@ const {
 } = require("./githubService");
 const { itemEnvelope } = require("./responseEnvelopes");
 
-const authRouter = new Router();
+const authRouter = express.Router();
 
 authRouter.get("/github/login", (req, res) => {
   const params = new URLSearchParams();

@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { itemEnvelope } = require("./responseEnvelopes");
 const {
@@ -6,7 +6,7 @@ const {
 } = require("./recommendationsService");
 const { listLatestChangedSkills } = require("./skillsService");
 
-const feedsRouter = new Router();
+const feedsRouter = express.Router();
 
 feedsRouter.get("/changes", async (req, res, next) => {
   let recommendations, skills;

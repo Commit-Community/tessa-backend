@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const {
   BadRequestError,
@@ -17,7 +17,7 @@ const {
 const { isAuthor } = require("./authMiddleware");
 const { isValidId, isNonWhitespaceOnlyString } = require("./validators");
 
-const skillsRouter = new Router();
+const skillsRouter = express.Router();
 
 skillsRouter.get("/", async (req, res, next) => {
   let skills;

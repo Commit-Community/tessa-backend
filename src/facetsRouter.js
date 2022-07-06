@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
 const { isAdmin } = require("./authMiddleware");
@@ -6,7 +6,7 @@ const { isNonWhitespaceOnlyString } = require("./validators");
 const { listFacets, createFacet } = require("./facetsService");
 const { UnprocessableEntityError } = require("./httpErrors");
 
-const facetsRouter = new Router();
+const facetsRouter = express.Router();
 
 facetsRouter.get("/", async (req, res, next) => {
   let facets;

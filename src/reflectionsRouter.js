@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
 const {
@@ -11,7 +11,7 @@ const { isAuthenticated } = require("./authMiddleware");
 const { isValidId } = require("./validators");
 const { UnprocessableEntityError, BadRequestError } = require("./httpErrors");
 
-const reflectionsRouter = new Router();
+const reflectionsRouter = express.Router();
 
 reflectionsRouter.get("/", isAuthenticated(), async (req, res, next) => {
   const { userId } = req.session;
