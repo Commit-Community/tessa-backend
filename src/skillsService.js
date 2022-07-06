@@ -7,6 +7,23 @@ exports.listSkills = async () => {
   return skills;
 };
 
+exports.listLatestChangedSkills = async () => {
+  const { rows: skillChanges } = await db.query(
+    "SELECT skill_id, MAX(created_at) AS latest_created_at FROM skill_changes GROUP BY skill_id ORDER BY latest_created_at DESC LIMIT 3;"
+  );
+  if (skillChanges.length === 0) {
+    return [];
+  }
+  const params = skillChanges.map((_, i) => `$${i + 1}`);
+  const { rows: skills } = await db.query(
+    `SELECT id, name, description FROM skills WHERE id IN (${params.join(
+      ", "
+    )});`,
+    skillChanges.map((s) => s.skill_id)
+  );
+  return skills;
+};
+
 exports.findSkill = async (skillId) => {
   const {
     rows: [skill],

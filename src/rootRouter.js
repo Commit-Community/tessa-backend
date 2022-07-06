@@ -1,6 +1,6 @@
-const { Router } = require("express");
+const express = require("express");
 
-const rootRouter = new Router();
+const rootRouter = express.Router();
 
 rootRouter.get("/", (req, res) => {
   res.json({});

@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { isAuthor } = require("./authMiddleware");
 const {
@@ -14,7 +14,7 @@ const {
   updateRecommendation,
 } = require("./recommendationsService");
 
-const recommendationsRouter = new Router();
+const recommendationsRouter = express.Router();
 
 recommendationsRouter.post("/", isAuthor(), async (req, res, next) => {
   const { userId } = req.session;

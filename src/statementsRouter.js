@@ -1,4 +1,4 @@
-const { Router } = require("express");
+const express = require("express");
 
 const { collectionEnvelope, itemEnvelope } = require("./responseEnvelopes");
 const {
@@ -10,7 +10,7 @@ const { isAdmin } = require("./authMiddleware");
 const { UnprocessableEntityError, BadRequestError } = require("./httpErrors");
 const { isNonWhitespaceOnlyString, isValidId } = require("./validators");
 
-const statementsRouter = new Router();
+const statementsRouter = express.Router();
 
 statementsRouter.get("/", async (req, res, next) => {
   let statements;
