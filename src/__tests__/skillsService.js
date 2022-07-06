@@ -1,5 +1,6 @@
 const {
   findSkill,
+  listLatestChangedSkills,
   listSkills,
   createSkill,
   tagSkill,
@@ -22,6 +23,35 @@ describe("skillsService", () => {
         skills
       );
       expect(await listSkills()).toEqual(skills);
+    });
+  });
+
+  describe("listLatestChangedSkills", () => {
+    it("should list skills that were recently updated or created", async () => {
+      const skillId = 1;
+      const skills = [
+        { id: skillId, name: "test name", description: "test description" },
+      ];
+      mockQuery(
+        "SELECT skill_id, MAX(created_at) AS latest_created_at FROM skill_changes GROUP BY skill_id ORDER BY latest_created_at DESC LIMIT 3;",
+        [],
+        [{ skill_id: skillId, latest_created_at: "2000-01-01T00:00:00Z" }]
+      );
+      mockQuery(
+        "SELECT id, name, description FROM skills WHERE id IN ($1);",
+        [skillId],
+        skills
+      );
+      expect(await listLatestChangedSkills()).toEqual(skills);
+    });
+
+    it("should not query for skill details if there are no skill changes", async () => {
+      mockQuery(
+        "SELECT skill_id, MAX(created_at) AS latest_created_at FROM skill_changes GROUP BY skill_id ORDER BY latest_created_at DESC LIMIT 3;",
+        [],
+        []
+      );
+      expect(await listLatestChangedSkills()).toEqual([]);
     });
   });
 
