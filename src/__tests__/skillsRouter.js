@@ -23,6 +23,7 @@ describe("skillsRouter", () => {
           id: 1,
           name: "test name",
           description: "test description",
+          tags: [],
         },
       ];
       listSkills.mockResolvedValueOnce(skills);
