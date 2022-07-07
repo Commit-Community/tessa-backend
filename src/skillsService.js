@@ -4,6 +4,23 @@ exports.listSkills = async () => {
   const { rows: skills } = await db.query(
     "SELECT id, name, description FROM skills ORDER BY name;"
   );
+  if (skills.length === 0) {
+    return skills;
+  }
+  const { rows: skillTags } = await db.query(
+    "SELECT skill_id, tag_id, tags.name FROM skills_tags JOIN tags ON tag_id = tags.id ORDER BY tags.name;"
+  );
+  const skillsIndex = skills.reduce((mappings, { id }, index) => {
+    mappings[id] = index;
+    return mappings;
+  }, {});
+  skills.forEach((s) => (s.tags = []));
+  for (const skillTag of skillTags) {
+    skills[skillsIndex[skillTag.skill_id]].tags.push({
+      id: skillTag.tag_id,
+      name: skillTag.name,
+    });
+  }
   return skills;
 };
 

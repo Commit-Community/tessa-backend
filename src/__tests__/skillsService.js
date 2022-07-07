@@ -14,15 +14,35 @@ jest.mock("../db");
 describe("skillsService", () => {
   describe("listSkills", () => {
     it("should list the skills in the database", async () => {
+      const skillId = 1;
+      const tagName = "test tag";
+      const tagId = 2;
+      const skillsRows = [
+        { id: skillId, name: "test name", description: "test description" },
+      ];
       const skills = [
-        { id: 1, name: "test name", description: "test description" },
+        { ...skillsRows[0], tags: [{ id: tagId, name: tagName }] },
       ];
       mockQuery(
         "SELECT id, name, description FROM skills ORDER BY name;",
         [],
-        skills
+        skillsRows
+      );
+      mockQuery(
+        "SELECT skill_id, tag_id, tags.name FROM skills_tags JOIN tags ON tag_id = tags.id ORDER BY tags.name;",
+        [],
+        [{ skill_id: skillId, tag_id: tagId, name: tagName }]
       );
       expect(await listSkills()).toEqual(skills);
+    });
+
+    it("should not query for tags if there are no skills", async () => {
+      mockQuery(
+        "SELECT id, name, description FROM skills ORDER BY name;",
+        [],
+        []
+      );
+      expect(await listSkills()).toEqual([]);
     });
   });
 
